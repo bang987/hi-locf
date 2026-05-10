@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hi.locf.feature.locf.mapper.LocfBatchControlMapper">
+
+    <resultMap id="locfBatchExecutionResultMap" type="com.hi.locf.feature.locf.entity.LocfBatchExecution">
+        <id property="batchExecutionId" column="BATCH_EXECUTION_ID"/>
+        <result property="batchRunNo" column="BATCH_RUN_NO"/>
+        <result property="baseDate" column="BASE_DATE"/>
+        <result property="batchType" column="BATCH_TYPE"/>
+        <result property="statusCode" column="STATUS_CODE"/>
+        <result property="targetCount" column="TARGET_COUNT"/>
+        <result property="processedCount" column="PROCESSED_COUNT"/>
+        <result property="errorCount" column="ERROR_COUNT"/>
+        <result property="startedAt" column="STARTED_AT"/>
+        <result property="finishedAt" column="FINISHED_AT"/>
+        <result property="errorMessage" column="ERROR_MESSAGE"/>
+    </resultMap>
+
+    <resultMap id="locfBatchStepExecutionResultMap" type="com.hi.locf.feature.locf.entity.LocfBatchStepExecution">
+        <id property="stepExecutionId" column="STEP_EXECUTION_ID"/>
+        <result property="batchExecutionId" column="BATCH_EXECUTION_ID"/>
+        <result property="stepName" column="STEP_NAME"/>
+        <result property="statusCode" column="STATUS_CODE"/>
+        <result property="startedAt" column="STARTED_AT"/>
+        <result property="finishedAt" column="FINISHED_AT"/>
+        <result property="processedCount" column="PROCESSED_COUNT"/>
+        <result property="errorMessage" column="ERROR_MESSAGE"/>
+    </resultMap>
+
+    <insert id="insertBatchExecution" parameterType="com.hi.locf.feature.locf.entity.LocfBatchExecution">
+        <selectKey keyProperty="batchExecutionId" resultType="long" order="BEFORE">
+            SELECT SQ_LOCF_BATCH_EXECUTION.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO LOCF_BATCH_EXECUTION (
+            BATCH_EXECUTION_ID,
+            BATCH_RUN_NO,
+            BASE_DATE,
+            BATCH_TYPE,
+            STATUS_CODE,
+            TARGET_COUNT,
+            PROCESSED_COUNT,
+            ERROR_COUNT,
+            STARTED_AT,
+            FINISHED_AT,
+            ERROR_MESSAGE
+        ) VALUES (
+            #{batchExecutionId},
+            #{batchRunNo},
+            #{baseDate},
+            #{batchType},
+            #{statusCode},
+            #{targetCount},
+            #{processedCount},
+            #{errorCount},
+            #{startedAt},
+            #{finishedAt},
+            #{errorMessage}
+        )
+    </insert>
+
+    <update id="completeBatchExecution" parameterType="com.hi.locf.feature.locf.entity.LocfBatchExecution">
+        UPDATE LOCF_BATCH_EXECUTION
+           SET STATUS_CODE = #{statusCode},
+               TARGET_COUNT = #{targetCount},
+               PROCESSED_COUNT = #{processedCount},
+               ERROR_COUNT = #{errorCount},
+               FINISHED_AT = #{finishedAt},
+               ERROR_MESSAGE = #{errorMessage}
+         WHERE BATCH_EXECUTION_ID = #{batchExecutionId}
+    </update>
+
+    <update id="failBatchExecution" parameterType="com.hi.locf.feature.locf.entity.LocfBatchExecution">
+        UPDATE LOCF_BATCH_EXECUTION
+           SET STATUS_CODE = #{statusCode},
+               ERROR_COUNT = #{errorCount},
+               FINISHED_AT = #{finishedAt},
+               ERROR_MESSAGE = #{errorMessage}
+         WHERE BATCH_EXECUTION_ID = #{batchExecutionId}
+    </update>
+
+    <select id="findBatchHistoryByBaseDate" resultMap="locfBatchExecutionResultMap">
+        SELECT BATCH_EXECUTION_ID,
+               BATCH_RUN_NO,
+               BASE_DATE,
+               BATCH_TYPE,
+               STATUS_CODE,
+               TARGET_COUNT,
+               PROCESSED_COUNT,
+               ERROR_COUNT,
+               STARTED_AT,
+               FINISHED_AT,
+               ERROR_MESSAGE
+          FROM LOCF_BATCH_EXECUTION
+         WHERE #{baseDate} IS NULL OR BASE_DATE = #{baseDate}
+         ORDER BY BATCH_EXECUTION_ID DESC
+    </select>
+
+    <insert id="insertStepExecution" parameterType="com.hi.locf.feature.locf.entity.LocfBatchStepExecution">
+        <selectKey keyProperty="stepExecutionId" resultType="long" order="BEFORE">
+            SELECT SQ_LOCF_BATCH_STEP_EXECUTION.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO LOCF_BATCH_STEP_EXECUTION (
+            STEP_EXECUTION_ID, BATCH_EXECUTION_ID, STEP_NAME, STATUS_CODE, STARTED_AT, FINISHED_AT, PROCESSED_COUNT, ERROR_MESSAGE
+        ) VALUES (
+            #{stepExecutionId}, #{batchExecutionId}, #{stepName}, #{statusCode}, #{startedAt}, #{finishedAt}, #{processedCount}, #{errorMessage}
+        )
+    </insert>
+
+    <update id="completeStepExecution" parameterType="com.hi.locf.feature.locf.entity.LocfBatchStepExecution">
+        UPDATE LOCF_BATCH_STEP_EXECUTION
+           SET STATUS_CODE = #{statusCode},
+               FINISHED_AT = #{finishedAt},
+               PROCESSED_COUNT = #{processedCount},
+               ERROR_MESSAGE = #{errorMessage}
+         WHERE STEP_EXECUTION_ID = #{stepExecutionId}
+    </update>
+
+    <update id="failStepExecution" parameterType="com.hi.locf.feature.locf.entity.LocfBatchStepExecution">
+        UPDATE LOCF_BATCH_STEP_EXECUTION
+           SET STATUS_CODE = #{statusCode},
+               FINISHED_AT = #{finishedAt},
+               PROCESSED_COUNT = #{processedCount},
+               ERROR_MESSAGE = #{errorMessage}
+         WHERE STEP_EXECUTION_ID = #{stepExecutionId}
+    </update>
+
+    <select id="findStepHistoryByBatchRunNo" resultMap="locfBatchStepExecutionResultMap">
+        SELECT s.STEP_EXECUTION_ID,
+               s.BATCH_EXECUTION_ID,
+               s.STEP_NAME,
+               s.STATUS_CODE,
+               s.STARTED_AT,
+               s.FINISHED_AT,
+               s.PROCESSED_COUNT,
+               s.ERROR_MESSAGE
+          FROM LOCF_BATCH_STEP_EXECUTION s
+          JOIN LOCF_BATCH_EXECUTION b
+            ON b.BATCH_EXECUTION_ID = s.BATCH_EXECUTION_ID
+         WHERE b.BATCH_RUN_NO = #{batchRunNo}
+         ORDER BY s.STEP_EXECUTION_ID ASC
+    </select>
+</mapper>

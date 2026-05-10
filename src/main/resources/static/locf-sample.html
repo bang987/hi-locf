@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LOCF 배치 학습 화면</title>
+    <style>
+        :root {
+            --bg: #f5f1e8;
+            --panel: #fffaf1;
+            --line: #d6c7ab;
+            --ink: #2e2418;
+            --accent: #8b5e34;
+            --accent-soft: #efe2cd;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at top left, #f7e8cb 0%, transparent 28%),
+                linear-gradient(135deg, #f7f2e8 0%, #efe4d2 100%);
+        }
+        .wrap {
+            max-width: 1380px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        h1, h2 { margin: 0 0 12px; }
+        h1 { font-size: 28px; }
+        h2 { font-size: 18px; }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 16px;
+        }
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            padding: 18px;
+            box-shadow: 0 8px 24px rgba(65, 45, 20, 0.08);
+        }
+        .wide { grid-column: span 12; }
+        .half { grid-column: span 6; }
+        .third { grid-column: span 4; }
+        .row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        input, button {
+            height: 40px;
+            border-radius: 10px;
+            border: 1px solid var(--line);
+            padding: 0 12px;
+            font-size: 14px;
+        }
+        input { background: white; min-width: 180px; }
+        button {
+            background: var(--accent);
+            color: white;
+            cursor: pointer;
+            border: none;
+            min-width: 120px;
+        }
+        button.secondary {
+            background: var(--accent-soft);
+            color: var(--ink);
+            border: 1px solid var(--line);
+        }
+        .status {
+            display: inline-flex;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: var(--accent-soft);
+            font-size: 12px;
+            font-weight: 700;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        th, td {
+            border-bottom: 1px solid #eadfcf;
+            padding: 8px 6px;
+            text-align: right;
+            white-space: nowrap;
+        }
+        th:first-child, td:first-child,
+        th:nth-child(2), td:nth-child(2) {
+            text-align: left;
+        }
+        pre {
+            margin: 0;
+            font-size: 12px;
+            white-space: pre-wrap;
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 12px;
+        }
+        .muted { color: #75644d; font-size: 12px; }
+        @media (max-width: 960px) {
+            .half, .third { grid-column: span 12; }
+        }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <div class="card wide" style="margin-bottom: 16px;">
+        <h1>LOCF 실무형 배치 학습 화면</h1>
+        <div class="muted">원천 계약 조회 -> 배치 실행 -> step 이력 확인 -> 계약별 상각상세/요약 조회 흐름을 한 화면에서 확인한다.</div>
+    </div>
+
+    <div class="grid">
+        <section class="card third">
+            <h2>1. 배치 실행</h2>
+            <div class="row">
+                <input id="baseDate" type="date" value="2026-01-10">
+                <button onclick="runBatch()">배치 실행</button>
+            </div>
+            <pre id="runResult">실행 결과 대기중</pre>
+        </section>
+
+        <section class="card third">
+            <h2>2. 요약 조회</h2>
+            <div class="row">
+                <input id="summaryDate" type="date" value="2026-01-10">
+                <button class="secondary" onclick="loadSummary()">요약 조회</button>
+            </div>
+            <pre id="summaryResult">요약 결과 대기중</pre>
+        </section>
+
+        <section class="card third">
+            <h2>3. 계약별 조회</h2>
+            <div class="row">
+                <input id="contractNo" type="text" value="LN-2026-000001">
+                <button class="secondary" onclick="loadContractResult()">계약 조회</button>
+            </div>
+            <pre id="contractHeader">계약 조회 대기중</pre>
+        </section>
+
+        <section class="card wide">
+            <h2>원천 계약 목록</h2>
+            <div class="row">
+                <button class="secondary" onclick="loadSourceContracts()">원천계약 새로고침</button>
+            </div>
+            <div id="sourceContractsTable"></div>
+        </section>
+
+        <section class="card half">
+            <h2>배치 이력</h2>
+            <div class="row">
+                <button class="secondary" onclick="loadBatchHistory()">배치이력 새로고침</button>
+            </div>
+            <div id="batchHistoryTable"></div>
+        </section>
+
+        <section class="card half">
+            <h2>배치 Step 이력</h2>
+            <div class="row">
+                <input id="batchRunNo" type="text" placeholder="배치실행번호">
+                <button class="secondary" onclick="loadStepHistory()">Step 조회</button>
+            </div>
+            <div id="stepHistoryTable"></div>
+        </section>
+
+        <section class="card wide">
+            <h2>계약별 상각 상세</h2>
+            <div id="contractDetailTable"></div>
+        </section>
+
+        <section class="card wide">
+            <h2>요약 결과 표</h2>
+            <div id="summaryTable"></div>
+        </section>
+    </div>
+</div>
+
+<script>
+    const apiBase = "/hi-locf/api/v1/locf";
+
+    function money(value) {
+        if (value === null || value === undefined) return "";
+        return Number(value).toLocaleString("ko-KR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function textCell(value) {
+        return value ?? "";
+    }
+
+    function renderTable(targetId, columns, rows) {
+        const target = document.getElementById(targetId);
+        if (!rows || rows.length === 0) {
+            target.innerHTML = "<div class='muted'>조회 결과가 없습니다.</div>";
+            return;
+        }
+
+        const header = columns.map(col => `<th>${col.label}</th>`).join("");
+        const body = rows.map(row => {
+            const cells = columns.map(col => {
+                const value = row[col.key];
+                return `<td>${col.format ? col.format(value) : textCell(value)}</td>`;
+            }).join("");
+            return `<tr>${cells}</tr>`;
+        }).join("");
+
+        target.innerHTML = `<table><thead><tr>${header}</tr></thead><tbody>${body}</tbody></table>`;
+    }
+
+    async function fetchJson(url, options) {
+        const response = await fetch(url, options);
+        const json = await response.json();
+        if (!json.success) {
+            throw new Error(json.error?.message || "API 호출 실패");
+        }
+        return json.data;
+    }
+
+    async function runBatch() {
+        try {
+            const baseDate = document.getElementById("baseDate").value;
+            const data = await fetchJson(`${apiBase}/batches/run`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ baseDate, batchType: "MANUAL" })
+            });
+            document.getElementById("runResult").textContent = JSON.stringify(data, null, 2);
+            document.getElementById("batchRunNo").value = data.batchRunNo;
+            await loadBatchHistory();
+            await loadStepHistory();
+            await loadSummary();
+            await loadContractResult();
+        } catch (error) {
+            document.getElementById("runResult").textContent = error.message;
+        }
+    }
+
+    async function loadSourceContracts() {
+        const data = await fetchJson(`${apiBase}/source-contracts`);
+        renderTable("sourceContractsTable", [
+            { key: "contractNo", label: "계약번호" },
+            { key: "customerName", label: "고객명" },
+            { key: "productCode", label: "상품코드" },
+            { key: "repaymentType", label: "상환방식" },
+            { key: "executionDate", label: "실행일자" },
+            { key: "maturityDate", label: "만기일자" },
+            { key: "principalAmt", label: "원금", format: money },
+            { key: "annualNominalRate", label: "약정금리", format: money },
+            { key: "outstandingPrincipalAmt", label: "잔액", format: money }
+        ], data);
+    }
+
+    async function loadBatchHistory() {
+        const data = await fetchJson(`${apiBase}/batches`);
+        renderTable("batchHistoryTable", [
+            { key: "batchRunNo", label: "배치실행번호" },
+            { key: "baseDate", label: "기준일자" },
+            { key: "batchType", label: "유형" },
+            { key: "statusCode", label: "상태" },
+            { key: "targetCount", label: "대상건수" },
+            { key: "processedCount", label: "처리건수" },
+            { key: "errorCount", label: "오류건수" }
+        ], data);
+    }
+
+    async function loadStepHistory() {
+        try {
+            const batchRunNo = document.getElementById("batchRunNo").value.trim();
+            if (!batchRunNo) return;
+            const data = await fetchJson(`${apiBase}/batches/${batchRunNo}/steps`);
+            renderTable("stepHistoryTable", [
+                { key: "stepName", label: "단계명" },
+                { key: "statusCode", label: "상태" },
+                { key: "processedCount", label: "처리건수" },
+                { key: "startedAt", label: "시작일시" },
+                { key: "finishedAt", label: "종료일시" }
+            ], data);
+        } catch (error) {
+            document.getElementById("stepHistoryTable").innerHTML = `<div class='muted'>${error.message}</div>`;
+        }
+    }
+
+    async function loadContractResult() {
+        try {
+            const contractNo = document.getElementById("contractNo").value.trim();
+            const data = await fetchJson(`${apiBase}/contracts/${contractNo}`);
+            document.getElementById("contractHeader").textContent = JSON.stringify(data.header, null, 2);
+            renderTable("contractDetailTable", [
+                { key: "installmentNo", label: "회차" },
+                { key: "paymentDate", label: "상환일자" },
+                { key: "openingPrincipalBal", label: "기초원금잔액", format: money },
+                { key: "openingCarryingAmt", label: "기초장부가", format: money },
+                { key: "scheduledPaymentAmt", label: "약정납입액", format: money },
+                { key: "scheduledPrincipalAmt", label: "약정원금", format: money },
+                { key: "scheduledInterestAmt", label: "약정이자", format: money },
+                { key: "effectiveInterestRevenue", label: "유효이자수익", format: money },
+                { key: "feeAmortizationAmt", label: "수수료상각", format: money },
+                { key: "costAmortizationAmt", label: "직접원가상각", format: money },
+                { key: "netAmortizationAmt", label: "순상각", format: money },
+                { key: "closingPrincipalBal", label: "기말원금잔액", format: money },
+                { key: "closingCarryingAmt", label: "기말장부가", format: money }
+            ], data.details);
+        } catch (error) {
+            document.getElementById("contractHeader").textContent = error.message;
+            document.getElementById("contractDetailTable").innerHTML = "";
+        }
+    }
+
+    async function loadSummary() {
+        try {
+            const baseDate = document.getElementById("summaryDate").value;
+            const data = await fetchJson(`${apiBase}/results/summary?baseDate=${baseDate}`);
+            document.getElementById("summaryResult").textContent = JSON.stringify(data, null, 2);
+            renderTable("summaryTable", [
+                { key: "baseDate", label: "기준일자" },
+                { key: "productCode", label: "상품코드" },
+                { key: "contractCount", label: "계약건수" },
+                { key: "totalInitialCarryingAmt", label: "최초장부가합계", format: money },
+                { key: "totalFinalCarryingAmt", label: "최종장부가합계", format: money },
+                { key: "totalEffectiveInterestRev", label: "총유효이자수익", format: money }
+            ], data);
+        } catch (error) {
+            document.getElementById("summaryResult").textContent = error.message;
+            document.getElementById("summaryTable").innerHTML = "";
+        }
+    }
+
+    loadSourceContracts();
+    loadBatchHistory();
+</script>
+</body>
+</html>

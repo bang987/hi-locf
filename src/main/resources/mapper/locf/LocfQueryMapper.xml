@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hi.locf.feature.locf.mapper.LocfQueryMapper">
+
+    <resultMap id="locfResultHeaderResultMap" type="com.hi.locf.feature.locf.entity.LocfResultHeader">
+        <id property="resultHdrId" column="RESULT_HDR_ID"/>
+        <result property="batchExecutionId" column="BATCH_EXECUTION_ID"/>
+        <result property="batchRunNo" column="BATCH_RUN_NO"/>
+        <result property="baseDate" column="BASE_DATE"/>
+        <result property="contractId" column="CONTRACT_ID"/>
+        <result property="contractNo" column="CONTRACT_NO"/>
+        <result property="customerId" column="CUSTOMER_ID"/>
+        <result property="customerName" column="CUSTOMER_NAME"/>
+        <result property="productCode" column="PRODUCT_CODE"/>
+        <result property="principalAmt" column="PRINCIPAL_AMT"/>
+        <result property="initialCarryingAmount" column="INITIAL_CARRYING_AMOUNT"/>
+        <result property="annualEir" column="ANNUAL_EIR"/>
+        <result property="finalCarryingAmount" column="FINAL_CARRYING_AMOUNT"/>
+        <result property="totalEffectiveInterestRev" column="TOTAL_EFFECTIVE_INTEREST_REV"/>
+        <result property="totalFeeAmortizationAmt" column="TOTAL_FEE_AMORTIZATION_AMT"/>
+        <result property="totalCostAmortizationAmt" column="TOTAL_COST_AMORTIZATION_AMT"/>
+    </resultMap>
+
+    <resultMap id="locfAmortizationDetailResultMap" type="com.hi.locf.feature.locf.entity.LocfAmortizationDetail">
+        <id property="amortizationDtlId" column="AMORTIZATION_DTL_ID"/>
+        <result property="batchExecutionId" column="BATCH_EXECUTION_ID"/>
+        <result property="contractId" column="CONTRACT_ID"/>
+        <result property="contractNo" column="CONTRACT_NO"/>
+        <result property="installmentNo" column="INSTALLMENT_NO"/>
+        <result property="paymentDate" column="PAYMENT_DATE"/>
+        <result property="openingPrincipalBal" column="OPENING_PRINCIPAL_BAL"/>
+        <result property="openingCarryingAmt" column="OPENING_CARRYING_AMT"/>
+        <result property="scheduledPaymentAmt" column="SCHEDULED_PAYMENT_AMT"/>
+        <result property="scheduledPrincipalAmt" column="SCHEDULED_PRINCIPAL_AMT"/>
+        <result property="scheduledInterestAmt" column="SCHEDULED_INTEREST_AMT"/>
+        <result property="effectiveInterestRevenue" column="EFFECTIVE_INTEREST_REVENUE"/>
+        <result property="feeAmortizationAmt" column="FEE_AMORTIZATION_AMT"/>
+        <result property="costAmortizationAmt" column="COST_AMORTIZATION_AMT"/>
+        <result property="netAmortizationAmt" column="NET_AMORTIZATION_AMT"/>
+        <result property="closingPrincipalBal" column="CLOSING_PRINCIPAL_BAL"/>
+        <result property="closingCarryingAmt" column="CLOSING_CARRYING_AMT"/>
+    </resultMap>
+
+    <resultMap id="locfResultSummaryResultMap" type="com.hi.locf.feature.locf.entity.LocfResultSummary">
+        <id property="summaryId" column="SUMMARY_ID"/>
+        <result property="batchExecutionId" column="BATCH_EXECUTION_ID"/>
+        <result property="baseDate" column="BASE_DATE"/>
+        <result property="productCode" column="PRODUCT_CODE"/>
+        <result property="contractCount" column="CONTRACT_COUNT"/>
+        <result property="totalInitialCarryingAmt" column="TOTAL_INITIAL_CARRYING_AMT"/>
+        <result property="totalFinalCarryingAmt" column="TOTAL_FINAL_CARRYING_AMT"/>
+        <result property="totalEffectiveInterestRev" column="TOTAL_EFFECTIVE_INTEREST_REV"/>
+    </resultMap>
+
+    <select id="findLatestResultHeaderByContractNo" resultMap="locfResultHeaderResultMap">
+        SELECT h.RESULT_HDR_ID,
+               h.BATCH_EXECUTION_ID,
+               b.BATCH_RUN_NO,
+               h.BASE_DATE,
+               h.CONTRACT_ID,
+               h.CONTRACT_NO,
+               h.CUSTOMER_ID,
+               c.CUSTOMER_NAME,
+               h.PRODUCT_CODE,
+               h.PRINCIPAL_AMT,
+               h.INITIAL_CARRYING_AMOUNT,
+               h.ANNUAL_EIR,
+               h.FINAL_CARRYING_AMOUNT,
+               h.TOTAL_EFFECTIVE_INTEREST_REV,
+               h.TOTAL_FEE_AMORTIZATION_AMT,
+               h.TOTAL_COST_AMORTIZATION_AMT
+          FROM LOCF_RESULT_HDR h
+          JOIN LOCF_BATCH_EXECUTION b
+            ON b.BATCH_EXECUTION_ID = h.BATCH_EXECUTION_ID
+          LEFT JOIN CUSTOMER_MASTER c
+            ON c.CUSTOMER_ID = h.CUSTOMER_ID
+         WHERE h.CONTRACT_NO = #{contractNo}
+         ORDER BY h.RESULT_HDR_ID DESC
+         FETCH FIRST 1 ROWS ONLY
+    </select>
+
+    <select id="findLatestResultDetailsByContractNo" resultMap="locfAmortizationDetailResultMap">
+        SELECT d.AMORTIZATION_DTL_ID,
+               d.BATCH_EXECUTION_ID,
+               d.CONTRACT_ID,
+               d.CONTRACT_NO,
+               d.INSTALLMENT_NO,
+               d.PAYMENT_DATE,
+               d.OPENING_PRINCIPAL_BAL,
+               d.OPENING_CARRYING_AMT,
+               d.SCHEDULED_PAYMENT_AMT,
+               d.SCHEDULED_PRINCIPAL_AMT,
+               d.SCHEDULED_INTEREST_AMT,
+               d.EFFECTIVE_INTEREST_REVENUE,
+               d.FEE_AMORTIZATION_AMT,
+               d.COST_AMORTIZATION_AMT,
+               d.NET_AMORTIZATION_AMT,
+               d.CLOSING_PRINCIPAL_BAL,
+               d.CLOSING_CARRYING_AMT
+          FROM LOCF_AMORTIZATION_DTL d
+         WHERE d.BATCH_EXECUTION_ID = (
+               SELECT h.BATCH_EXECUTION_ID
+                 FROM LOCF_RESULT_HDR h
+                WHERE h.CONTRACT_NO = #{contractNo}
+                ORDER BY h.RESULT_HDR_ID DESC
+                FETCH FIRST 1 ROWS ONLY
+         )
+           AND d.CONTRACT_NO = #{contractNo}
+         ORDER BY d.INSTALLMENT_NO ASC
+    </select>
+
+    <select id="findSummaryByBaseDate" resultMap="locfResultSummaryResultMap">
+        SELECT SUMMARY_ID,
+               BATCH_EXECUTION_ID,
+               BASE_DATE,
+               PRODUCT_CODE,
+               CONTRACT_COUNT,
+               TOTAL_INITIAL_CARRYING_AMT,
+               TOTAL_FINAL_CARRYING_AMT,
+               TOTAL_EFFECTIVE_INTEREST_REV
+          FROM LOCF_RESULT_SUMMARY
+         WHERE BASE_DATE = #{baseDate}
+         ORDER BY PRODUCT_CODE ASC
+    </select>
+
+    <resultMap id="loanContractSourceResultMap" type="com.hi.locf.feature.locf.entity.LoanContractSource">
+        <id property="contractId" column="CONTRACT_ID"/>
+        <result property="contractNo" column="CONTRACT_NO"/>
+        <result property="customerId" column="CUSTOMER_ID"/>
+        <result property="customerName" column="CUSTOMER_NAME"/>
+        <result property="productCode" column="PRODUCT_CODE"/>
+        <result property="loanTypeCode" column="LOAN_TYPE_CODE"/>
+        <result property="repaymentType" column="REPAYMENT_TYPE"/>
+        <result property="executionDate" column="EXECUTION_DATE"/>
+        <result property="maturityDate" column="MATURITY_DATE"/>
+        <result property="principalAmt" column="PRINCIPAL_AMT"/>
+        <result property="feeAmt" column="FEE_AMT"/>
+        <result property="directCostAmt" column="DIRECT_COST_AMT"/>
+        <result property="annualNominalRate" column="ANNUAL_NOMINAL_RATE"/>
+        <result property="outstandingPrincipalAmt" column="OUTSTANDING_PRINCIPAL_AMT"/>
+        <result property="statusCode" column="STATUS_CODE"/>
+    </resultMap>
+
+    <select id="findSourceContracts" resultMap="loanContractSourceResultMap">
+        SELECT c.CONTRACT_ID,
+               c.CONTRACT_NO,
+               c.CUSTOMER_ID,
+               m.CUSTOMER_NAME,
+               c.PRODUCT_CODE,
+               c.LOAN_TYPE_CODE,
+               c.REPAYMENT_TYPE,
+               c.EXECUTION_DATE,
+               c.MATURITY_DATE,
+               c.PRINCIPAL_AMT,
+               c.FEE_AMT,
+               c.DIRECT_COST_AMT,
+               r.ANNUAL_NOMINAL_RATE,
+               (
+                   SELECT b.OUTSTANDING_PRINCIPAL_AMT
+                     FROM LOAN_BALANCE b
+                    WHERE b.CONTRACT_ID = c.CONTRACT_ID
+                    ORDER BY b.BASE_DATE DESC
+                    FETCH FIRST 1 ROWS ONLY
+               ) AS OUTSTANDING_PRINCIPAL_AMT,
+               c.STATUS_CODE
+          FROM LOAN_CONTRACT c
+          JOIN CUSTOMER_MASTER m
+            ON m.CUSTOMER_ID = c.CUSTOMER_ID
+          LEFT JOIN LOAN_RATE r
+            ON r.CONTRACT_ID = c.CONTRACT_ID
+           AND r.EFFECTIVE_FROM = (
+               SELECT MAX(r2.EFFECTIVE_FROM)
+                 FROM LOAN_RATE r2
+                WHERE r2.CONTRACT_ID = c.CONTRACT_ID
+           )
+         ORDER BY c.CONTRACT_NO ASC
+    </select>
+</mapper>

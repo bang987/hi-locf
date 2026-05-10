@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hi.locf.feature.locf.mapper.LocfEirMapper">
+
+    <resultMap id="locfEirResultMap" type="com.hi.locf.feature.locf.entity.LocfEirResult">
+        <id property="eirResultId" column="EIR_RESULT_ID"/>
+        <result property="batchExecutionId" column="BATCH_EXECUTION_ID"/>
+        <result property="contractId" column="CONTRACT_ID"/>
+        <result property="contractNo" column="CONTRACT_NO"/>
+        <result property="initialCarryingAmount" column="INITIAL_CARRYING_AMOUNT"/>
+        <result property="monthlyEir" column="MONTHLY_EIR"/>
+        <result property="annualEir" column="ANNUAL_EIR"/>
+    </resultMap>
+
+    <delete id="deleteEirResultsByBatchExecutionId">
+        DELETE FROM LOCF_EIR_RESULT
+         WHERE BATCH_EXECUTION_ID = #{batchExecutionId}
+    </delete>
+
+    <insert id="insertEirResult" parameterType="com.hi.locf.feature.locf.entity.LocfEirResult">
+        <selectKey keyProperty="eirResultId" resultType="long" order="BEFORE">
+            SELECT SQ_LOCF_EIR_RESULT.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO LOCF_EIR_RESULT (
+            EIR_RESULT_ID, BATCH_EXECUTION_ID, CONTRACT_ID, CONTRACT_NO, INITIAL_CARRYING_AMOUNT, MONTHLY_EIR, ANNUAL_EIR
+        ) VALUES (
+            #{eirResultId}, #{batchExecutionId}, #{contractId}, #{contractNo}, #{initialCarryingAmount}, #{monthlyEir}, #{annualEir}
+        )
+    </insert>
+
+    <select id="findEirResultByContractId" resultMap="locfEirResultMap">
+        SELECT EIR_RESULT_ID, BATCH_EXECUTION_ID, CONTRACT_ID, CONTRACT_NO, INITIAL_CARRYING_AMOUNT, MONTHLY_EIR, ANNUAL_EIR
+          FROM LOCF_EIR_RESULT
+         WHERE BATCH_EXECUTION_ID = #{batchExecutionId}
+           AND CONTRACT_ID = #{contractId}
+    </select>
+
+    <select id="findEirResultsByBatchExecutionId" resultMap="locfEirResultMap">
+        SELECT EIR_RESULT_ID, BATCH_EXECUTION_ID, CONTRACT_ID, CONTRACT_NO, INITIAL_CARRYING_AMOUNT, MONTHLY_EIR, ANNUAL_EIR
+          FROM LOCF_EIR_RESULT
+         WHERE BATCH_EXECUTION_ID = #{batchExecutionId}
+         ORDER BY CONTRACT_ID ASC
+    </select>
+</mapper>

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hi.locf.feature.locf.mapper.LocfTargetContractMapper">
+
+    <resultMap id="locfTargetContractResultMap" type="com.hi.locf.feature.locf.entity.LocfTargetContract">
+        <id property="targetId" column="TARGET_ID"/>
+        <result property="batchExecutionId" column="BATCH_EXECUTION_ID"/>
+        <result property="contractId" column="CONTRACT_ID"/>
+        <result property="contractNo" column="CONTRACT_NO"/>
+        <result property="customerId" column="CUSTOMER_ID"/>
+        <result property="customerName" column="CUSTOMER_NAME"/>
+        <result property="productCode" column="PRODUCT_CODE"/>
+        <result property="repaymentType" column="REPAYMENT_TYPE"/>
+        <result property="principalAmt" column="PRINCIPAL_AMT"/>
+        <result property="feeAmt" column="FEE_AMT"/>
+        <result property="directCostAmt" column="DIRECT_COST_AMT"/>
+        <result property="annualNominalRate" column="ANNUAL_NOMINAL_RATE"/>
+        <result property="executionDate" column="EXECUTION_DATE"/>
+        <result property="maturityDate" column="MATURITY_DATE"/>
+        <result property="termInMonths" column="TERM_IN_MONTHS"/>
+    </resultMap>
+
+    <delete id="deleteTargetContractsByBatchExecutionId">
+        DELETE FROM LOCF_TARGET_CONTRACT
+         WHERE BATCH_EXECUTION_ID = #{batchExecutionId}
+    </delete>
+
+    <insert id="insertTargetContracts">
+        INSERT INTO LOCF_TARGET_CONTRACT (
+            TARGET_ID, BATCH_EXECUTION_ID, CONTRACT_ID, CONTRACT_NO, CUSTOMER_ID, PRODUCT_CODE,
+            REPAYMENT_TYPE, PRINCIPAL_AMT, FEE_AMT, DIRECT_COST_AMT, ANNUAL_NOMINAL_RATE,
+            EXECUTION_DATE, MATURITY_DATE, TERM_IN_MONTHS
+        )
+        SELECT SQ_LOCF_TARGET_CONTRACT.NEXTVAL,
+               #{batchExecutionId},
+               c.CONTRACT_ID,
+               c.CONTRACT_NO,
+               c.CUSTOMER_ID,
+               c.PRODUCT_CODE,
+               c.REPAYMENT_TYPE,
+               c.PRINCIPAL_AMT,
+               c.FEE_AMT,
+               c.DIRECT_COST_AMT,
+               r.ANNUAL_NOMINAL_RATE,
+               c.EXECUTION_DATE,
+               c.MATURITY_DATE,
+               (
+                   (EXTRACT(YEAR FROM c.MATURITY_DATE) - EXTRACT(YEAR FROM c.EXECUTION_DATE)) * 12
+                   + (EXTRACT(MONTH FROM c.MATURITY_DATE) - EXTRACT(MONTH FROM c.EXECUTION_DATE))
+               )
+          FROM LOAN_CONTRACT c
+          JOIN LOAN_RATE r
+            ON r.CONTRACT_ID = c.CONTRACT_ID
+          JOIN LOAN_BALANCE b
+            ON b.CONTRACT_ID = c.CONTRACT_ID
+         WHERE c.STATUS_CODE = 'ACTIVE'
+           AND b.BASE_DATE = #{baseDate}
+    </insert>
+
+    <select id="findTargetContractsByBatchExecutionId" resultMap="locfTargetContractResultMap">
+        SELECT t.TARGET_ID,
+               t.BATCH_EXECUTION_ID,
+               t.CONTRACT_ID,
+               t.CONTRACT_NO,
+               t.CUSTOMER_ID,
+               cm.CUSTOMER_NAME,
+               t.PRODUCT_CODE,
+               t.REPAYMENT_TYPE,
+               t.PRINCIPAL_AMT,
+               t.FEE_AMT,
+               t.DIRECT_COST_AMT,
+               t.ANNUAL_NOMINAL_RATE,
+               t.EXECUTION_DATE,
+               t.MATURITY_DATE,
+               t.TERM_IN_MONTHS
+          FROM LOCF_TARGET_CONTRACT t
+          LEFT JOIN CUSTOMER_MASTER cm
+            ON cm.CUSTOMER_ID = t.CUSTOMER_ID
+         WHERE t.BATCH_EXECUTION_ID = #{batchExecutionId}
+         ORDER BY t.CONTRACT_ID ASC
+    </select>
+
+    <select id="countTargetContracts" resultType="long">
+        SELECT COUNT(*)
+          FROM LOCF_TARGET_CONTRACT
+         WHERE BATCH_EXECUTION_ID = #{batchExecutionId}
+    </select>
+</mapper>

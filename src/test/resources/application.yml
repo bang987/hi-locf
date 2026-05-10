@@ -1,0 +1,23 @@
+spring:
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:hi_locf;MODE=Oracle;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql
+
+mybatis:
+  mapper-locations: classpath:/mapper/locf/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+    jdbc-type-for-null: 'NULL'
+
+app:
+  batch:
+    seed-contract-count: 3
+  cors:
+    allowed-origins:
+      - http://localhost:8081

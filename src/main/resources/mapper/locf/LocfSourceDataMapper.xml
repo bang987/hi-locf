@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hi.locf.feature.locf.mapper.LocfSourceDataMapper">
+
+    <resultMap id="loanRepaymentScheduleResultMap" type="com.hi.locf.feature.locf.entity.LoanRepaymentScheduleSource">
+        <id property="scheduleId" column="SCHEDULE_ID"/>
+        <result property="contractId" column="CONTRACT_ID"/>
+        <result property="installmentNo" column="INSTALLMENT_NO"/>
+        <result property="paymentDate" column="PAYMENT_DATE"/>
+        <result property="scheduledPaymentAmt" column="SCHEDULED_PAYMENT_AMT"/>
+        <result property="scheduledPrincipalAmt" column="SCHEDULED_PRINCIPAL_AMT"/>
+        <result property="scheduledInterestAmt" column="SCHEDULED_INTEREST_AMT"/>
+        <result property="createdAt" column="CREATED_AT"/>
+        <result property="updatedAt" column="UPDATED_AT"/>
+    </resultMap>
+
+    <select id="countContracts" resultType="long">
+        SELECT COUNT(*)
+          FROM LOAN_CONTRACT
+    </select>
+
+    <insert id="insertCustomer" parameterType="com.hi.locf.feature.locf.entity.CustomerMaster">
+        <selectKey keyProperty="customerId" resultType="long" order="BEFORE">
+            SELECT SQ_CUSTOMER_MASTER.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO CUSTOMER_MASTER (
+            CUSTOMER_ID, CUSTOMER_NO, CUSTOMER_NAME, CUSTOMER_TYPE, SEGMENT_CODE, STATUS_CODE, CREATED_AT, UPDATED_AT
+        ) VALUES (
+            #{customerId}, #{customerNo}, #{customerName}, #{customerType}, #{segmentCode}, #{statusCode}, #{createdAt}, #{updatedAt}
+        )
+    </insert>
+
+    <insert id="insertContract" parameterType="com.hi.locf.feature.locf.entity.LoanContractSource">
+        <selectKey keyProperty="contractId" resultType="long" order="BEFORE">
+            SELECT SQ_LOAN_CONTRACT.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO LOAN_CONTRACT (
+            CONTRACT_ID, CONTRACT_NO, CUSTOMER_ID, PRODUCT_CODE, LOAN_TYPE_CODE, REPAYMENT_TYPE,
+            EXECUTION_DATE, MATURITY_DATE, PRINCIPAL_AMT, FEE_AMT, DIRECT_COST_AMT, STATUS_CODE, CREATED_AT, UPDATED_AT
+        ) VALUES (
+            #{contractId}, #{contractNo}, #{customerId}, #{productCode}, #{loanTypeCode}, #{repaymentType},
+            #{executionDate}, #{maturityDate}, #{principalAmt}, #{feeAmt}, #{directCostAmt}, #{statusCode}, #{createdAt}, #{updatedAt}
+        )
+    </insert>
+
+    <insert id="insertRate" parameterType="com.hi.locf.feature.locf.entity.LoanRateSource">
+        <selectKey keyProperty="rateId" resultType="long" order="BEFORE">
+            SELECT SQ_LOAN_RATE.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO LOAN_RATE (
+            RATE_ID, CONTRACT_ID, RATE_TYPE, ANNUAL_NOMINAL_RATE, EFFECTIVE_FROM, EFFECTIVE_TO, CREATED_AT, UPDATED_AT
+        ) VALUES (
+            #{rateId}, #{contractId}, #{rateType}, #{annualNominalRate}, #{effectiveFrom}, #{effectiveTo}, #{createdAt}, #{updatedAt}
+        )
+    </insert>
+
+    <insert id="insertRepaymentSchedule" parameterType="com.hi.locf.feature.locf.entity.LoanRepaymentScheduleSource">
+        <selectKey keyProperty="scheduleId" resultType="long" order="BEFORE">
+            SELECT SQ_LOAN_REPAYMENT_SCHEDULE.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO LOAN_REPAYMENT_SCHEDULE (
+            SCHEDULE_ID, CONTRACT_ID, INSTALLMENT_NO, PAYMENT_DATE, SCHEDULED_PAYMENT_AMT,
+            SCHEDULED_PRINCIPAL_AMT, SCHEDULED_INTEREST_AMT, CREATED_AT, UPDATED_AT
+        ) VALUES (
+            #{scheduleId}, #{contractId}, #{installmentNo}, #{paymentDate}, #{scheduledPaymentAmt},
+            #{scheduledPrincipalAmt}, #{scheduledInterestAmt}, #{createdAt}, #{updatedAt}
+        )
+    </insert>
+
+    <insert id="insertBalance" parameterType="com.hi.locf.feature.locf.entity.LoanBalanceSource">
+        <selectKey keyProperty="balanceId" resultType="long" order="BEFORE">
+            SELECT SQ_LOAN_BALANCE.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO LOAN_BALANCE (
+            BALANCE_ID, CONTRACT_ID, BASE_DATE, OUTSTANDING_PRINCIPAL_AMT, ACCRUED_INTEREST_AMT,
+            STATUS_CODE, CREATED_AT, UPDATED_AT
+        ) VALUES (
+            #{balanceId}, #{contractId}, #{baseDate}, #{outstandingPrincipalAmt}, #{accruedInterestAmt},
+            #{statusCode}, #{createdAt}, #{updatedAt}
+        )
+    </insert>
+
+    <select id="findRepaymentSchedulesByContractId" resultMap="loanRepaymentScheduleResultMap">
+        SELECT SCHEDULE_ID, CONTRACT_ID, INSTALLMENT_NO, PAYMENT_DATE, SCHEDULED_PAYMENT_AMT,
+               SCHEDULED_PRINCIPAL_AMT, SCHEDULED_INTEREST_AMT, CREATED_AT, UPDATED_AT
+          FROM LOAN_REPAYMENT_SCHEDULE
+         WHERE CONTRACT_ID = #{contractId}
+         ORDER BY INSTALLMENT_NO ASC
+    </select>
+</mapper>

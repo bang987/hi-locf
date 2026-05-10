@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hi.locf.feature.locf.mapper.LocfCashflowMapper">
+
+    <resultMap id="locfCashflowBaseResultMap" type="com.hi.locf.feature.locf.entity.LocfCashflowBase">
+        <id property="cashflowBaseId" column="CASHFLOW_BASE_ID"/>
+        <result property="batchExecutionId" column="BATCH_EXECUTION_ID"/>
+        <result property="contractId" column="CONTRACT_ID"/>
+        <result property="contractNo" column="CONTRACT_NO"/>
+        <result property="installmentNo" column="INSTALLMENT_NO"/>
+        <result property="paymentDate" column="PAYMENT_DATE"/>
+        <result property="scheduledPaymentAmt" column="SCHEDULED_PAYMENT_AMT"/>
+        <result property="scheduledPrincipalAmt" column="SCHEDULED_PRINCIPAL_AMT"/>
+        <result property="scheduledInterestAmt" column="SCHEDULED_INTEREST_AMT"/>
+    </resultMap>
+
+    <delete id="deleteCashflowBaseByBatchExecutionId">
+        DELETE FROM LOCF_CASHFLOW_BASE
+         WHERE BATCH_EXECUTION_ID = #{batchExecutionId}
+    </delete>
+
+    <insert id="insertCashflowBase" parameterType="com.hi.locf.feature.locf.entity.LocfCashflowBase">
+        <selectKey keyProperty="cashflowBaseId" resultType="long" order="BEFORE">
+            SELECT SQ_LOCF_CASHFLOW_BASE.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO LOCF_CASHFLOW_BASE (
+            CASHFLOW_BASE_ID, BATCH_EXECUTION_ID, CONTRACT_ID, CONTRACT_NO, INSTALLMENT_NO, PAYMENT_DATE,
+            SCHEDULED_PAYMENT_AMT, SCHEDULED_PRINCIPAL_AMT, SCHEDULED_INTEREST_AMT
+        ) VALUES (
+            #{cashflowBaseId}, #{batchExecutionId}, #{contractId}, #{contractNo}, #{installmentNo}, #{paymentDate},
+            #{scheduledPaymentAmt}, #{scheduledPrincipalAmt}, #{scheduledInterestAmt}
+        )
+    </insert>
+
+    <select id="findCashflowBaseByBatchExecutionId" resultMap="locfCashflowBaseResultMap">
+        SELECT CASHFLOW_BASE_ID, BATCH_EXECUTION_ID, CONTRACT_ID, CONTRACT_NO, INSTALLMENT_NO, PAYMENT_DATE,
+               SCHEDULED_PAYMENT_AMT, SCHEDULED_PRINCIPAL_AMT, SCHEDULED_INTEREST_AMT
+          FROM LOCF_CASHFLOW_BASE
+         WHERE BATCH_EXECUTION_ID = #{batchExecutionId}
+         ORDER BY CONTRACT_ID ASC, INSTALLMENT_NO ASC
+    </select>
+
+    <select id="findCashflowBaseByContractId" resultMap="locfCashflowBaseResultMap">
+        SELECT CASHFLOW_BASE_ID, BATCH_EXECUTION_ID, CONTRACT_ID, CONTRACT_NO, INSTALLMENT_NO, PAYMENT_DATE,
+               SCHEDULED_PAYMENT_AMT, SCHEDULED_PRINCIPAL_AMT, SCHEDULED_INTEREST_AMT
+          FROM LOCF_CASHFLOW_BASE
+         WHERE BATCH_EXECUTION_ID = #{batchExecutionId}
+           AND CONTRACT_ID = #{contractId}
+         ORDER BY INSTALLMENT_NO ASC
+    </select>
+</mapper>
