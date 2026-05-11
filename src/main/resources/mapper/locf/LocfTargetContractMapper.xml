@@ -28,6 +28,10 @@
     </delete>
 
     <insert id="insertTargetContracts">
+        <!--
+            원천 계약/금리/잔액 테이블에서 LOCF 배치 대상 계약을 한 번에 적재한다.
+            자바에서 계약을 건건이 읽지 않고 INSERT ... SELECT 로 대량 처리하는 구조다.
+        -->
         INSERT INTO LOCF_TARGET_CONTRACT (
             TARGET_ID, BATCH_EXECUTION_ID, CONTRACT_ID, CONTRACT_NO, CUSTOMER_ID, PRODUCT_CODE,
             REPAYMENT_TYPE, PRINCIPAL_AMT, FEE_AMT, DIRECT_COST_AMT, ANNUAL_NOMINAL_RATE,
@@ -60,6 +64,10 @@
     </insert>
 
     <select id="findTargetContractsByBatchExecutionId" resultMap="locfTargetContractResultMap">
+        <!--
+            방금 적재한 대상 계약을 다시 읽어 이후 CASHFLOW/EIR/상각 step의 입력으로 사용한다.
+            화면에 고객명을 함께 보여주기 위해 고객마스터와 조인한다.
+        -->
         SELECT t.TARGET_ID,
                t.BATCH_EXECUTION_ID,
                t.CONTRACT_ID,

@@ -14,6 +14,7 @@ public class LocfBatchStepExecution {
     private String errorMessage;
 
     public static LocfBatchStepExecution start(Long batchExecutionId, String stepName) {
+        // step 단위 실행이력을 RUNNING 상태로 시작한다.
         LocfBatchStepExecution step = new LocfBatchStepExecution();
         step.batchExecutionId = batchExecutionId;
         step.stepName = stepName;
@@ -24,12 +25,14 @@ public class LocfBatchStepExecution {
     }
 
     public void complete(long processedCount) {
+        // step 정상 종료 시 처리건수와 종료시각을 기록한다.
         this.statusCode = "COMPLETED";
         this.processedCount = processedCount;
         this.finishedAt = LocalDateTime.now();
     }
 
     public void fail(long processedCount, String errorMessage) {
+        // step 실패 시 마지막 처리건수와 오류 메시지를 남긴다.
         this.statusCode = "FAILED";
         this.processedCount = processedCount;
         this.errorMessage = errorMessage;

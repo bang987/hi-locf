@@ -36,6 +36,8 @@ public class LoanContractSource {
             BigDecimal feeAmt,
             BigDecimal directCostAmt
     ) {
+        // 원천 여신계약 1건을 생성한다. 샘플 데이터 기준 기본 상태는 ACTIVE로 둔다.
+        LocalDateTime now = LocalDateTime.now();
         LoanContractSource contract = new LoanContractSource();
         contract.contractNo = contractNo;
         contract.customerId = customerId;
@@ -48,8 +50,8 @@ public class LoanContractSource {
         contract.feeAmt = feeAmt;
         contract.directCostAmt = directCostAmt;
         contract.statusCode = "ACTIVE";
-        contract.createdAt = LocalDateTime.now();
-        contract.updatedAt = LocalDateTime.now();
+        contract.createdAt = now;
+        contract.updatedAt = now;
         return contract;
     }
 

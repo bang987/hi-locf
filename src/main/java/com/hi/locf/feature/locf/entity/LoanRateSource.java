@@ -16,14 +16,16 @@ public class LoanRateSource {
     private LocalDateTime updatedAt;
 
     public static LoanRateSource create(Long contractId, BigDecimal annualNominalRate, LocalDate effectiveFrom, LocalDate effectiveTo) {
+        // 예제에서는 고정금리 원천 데이터를 생성한다.
+        LocalDateTime now = LocalDateTime.now();
         LoanRateSource rate = new LoanRateSource();
         rate.contractId = contractId;
         rate.rateType = "FIXED";
         rate.annualNominalRate = annualNominalRate;
         rate.effectiveFrom = effectiveFrom;
         rate.effectiveTo = effectiveTo;
-        rate.createdAt = LocalDateTime.now();
-        rate.updatedAt = LocalDateTime.now();
+        rate.createdAt = now;
+        rate.updatedAt = now;
         return rate;
     }
 

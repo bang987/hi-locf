@@ -18,6 +18,7 @@ public class LocfBatchExecution {
     private String errorMessage;
 
     public static LocfBatchExecution start(String batchRunNo, LocalDate baseDate, String batchType) {
+        // 배치 헤더 1건을 RUNNING 상태로 시작한다.
         LocfBatchExecution execution = new LocfBatchExecution();
         execution.batchRunNo = batchRunNo;
         execution.baseDate = baseDate;
@@ -31,6 +32,7 @@ public class LocfBatchExecution {
     }
 
     public void complete(long targetCount, long processedCount, long errorCount) {
+        // 모든 step이 정상 종료되면 완료 상태와 최종 건수를 기록한다.
         this.statusCode = "COMPLETED";
         this.targetCount = targetCount;
         this.processedCount = processedCount;
@@ -39,6 +41,7 @@ public class LocfBatchExecution {
     }
 
     public void fail(String errorMessage) {
+        // 예외 발생 시 실패 상태와 오류 메시지를 남긴다.
         this.statusCode = "FAILED";
         this.errorCount = 1L;
         this.errorMessage = errorMessage;

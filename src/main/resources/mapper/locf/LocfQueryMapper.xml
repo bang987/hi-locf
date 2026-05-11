@@ -55,6 +55,7 @@
     </resultMap>
 
     <select id="findLatestResultHeaderByContractNo" resultMap="locfResultHeaderResultMap">
+        <!-- 계약번호 기준 최신 배치의 결과 헤더 1건을 조회한다. -->
         SELECT h.RESULT_HDR_ID,
                h.BATCH_EXECUTION_ID,
                b.BATCH_RUN_NO,
@@ -82,6 +83,7 @@
     </select>
 
     <select id="findLatestResultDetailsByContractNo" resultMap="locfAmortizationDetailResultMap">
+        <!-- 계약번호 기준 최신 배치의 회차별 상각 상세를 조회한다. -->
         SELECT d.AMORTIZATION_DTL_ID,
                d.BATCH_EXECUTION_ID,
                d.CONTRACT_ID,
@@ -112,6 +114,7 @@
     </select>
 
     <select id="findSummaryByBaseDate" resultMap="locfResultSummaryResultMap">
+        <!-- 기준일자 기준 상품 단위 요약 결과를 조회한다. -->
         SELECT SUMMARY_ID,
                BATCH_EXECUTION_ID,
                BASE_DATE,
@@ -144,6 +147,7 @@
     </resultMap>
 
     <select id="findSourceContracts" resultMap="loanContractSourceResultMap">
+        <!-- 학습용 화면에서 원천 계약/잔액/적용금리를 한 번에 볼 수 있게 묶어서 조회한다. -->
         SELECT c.CONTRACT_ID,
                c.CONTRACT_NO,
                c.CUSTOMER_ID,

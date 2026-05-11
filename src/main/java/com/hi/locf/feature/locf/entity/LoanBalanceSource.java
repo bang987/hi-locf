@@ -16,14 +16,16 @@ public class LoanBalanceSource {
     private LocalDateTime updatedAt;
 
     public static LoanBalanceSource create(Long contractId, LocalDate baseDate, BigDecimal outstandingPrincipalAmt, BigDecimal accruedInterestAmt) {
+        // 기준일 현재 원천 잔액 1건을 생성한다.
+        LocalDateTime now = LocalDateTime.now();
         LoanBalanceSource balance = new LoanBalanceSource();
         balance.contractId = contractId;
         balance.baseDate = baseDate;
         balance.outstandingPrincipalAmt = outstandingPrincipalAmt;
         balance.accruedInterestAmt = accruedInterestAmt;
         balance.statusCode = "ACTIVE";
-        balance.createdAt = LocalDateTime.now();
-        balance.updatedAt = LocalDateTime.now();
+        balance.createdAt = now;
+        balance.updatedAt = now;
         return balance;
     }
 

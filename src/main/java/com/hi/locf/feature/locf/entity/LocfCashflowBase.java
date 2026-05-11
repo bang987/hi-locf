@@ -16,6 +16,7 @@ public class LocfCashflowBase {
     private BigDecimal scheduledInterestAmt;
 
     public static LocfCashflowBase create(Long batchExecutionId, Long contractId, String contractNo, LoanRepaymentScheduleSource row) {
+        // 원천 상환스케줄 1행을 LOCF 계산용 약정 현금흐름 1행으로 변환한다.
         LocfCashflowBase base = new LocfCashflowBase();
         base.batchExecutionId = batchExecutionId;
         base.contractId = contractId;

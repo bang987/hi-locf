@@ -14,14 +14,16 @@ public class CustomerMaster {
     private LocalDateTime updatedAt;
 
     public static CustomerMaster create(String customerNo, String customerName, String customerType, String segmentCode) {
+        // 원천 고객 마스터 샘플 데이터를 만들 때 사용하는 생성 규칙이다.
+        LocalDateTime now = LocalDateTime.now();
         CustomerMaster customer = new CustomerMaster();
         customer.customerNo = customerNo;
         customer.customerName = customerName;
         customer.customerType = customerType;
         customer.segmentCode = segmentCode;
         customer.statusCode = "ACTIVE";
-        customer.createdAt = LocalDateTime.now();
-        customer.updatedAt = LocalDateTime.now();
+        customer.createdAt = now;
+        customer.updatedAt = now;
         return customer;
     }
 

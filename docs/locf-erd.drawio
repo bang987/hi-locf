@@ -1,0 +1,115 @@
+<mxfile host="app.diagrams.net" agent="Codex">
+  <diagram id="locf-erd" name="LOCF ERD">
+    <mxGraphModel dx="2175" dy="1195" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2200" pageHeight="1400" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="srcTitle" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontStyle=1;fontSize=20;" value="원천 테이블" vertex="1">
+          <mxGeometry height="30" width="180" x="40" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="locfTitle" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontStyle=1;fontSize=20;" value="LOCF 배치/중간/결과 테이블" vertex="1">
+          <mxGeometry height="30" width="320" x="980" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="customer" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;spacingLeft=8;verticalAlign=top;" value="CUSTOMER_MASTER 고객 마스터&#xa;------------------------------&#xa;PK CUSTOMER_ID 고객ID&#xa;CUSTOMER_NO 고객번호&#xa;CUSTOMER_NAME 고객명&#xa;CUSTOMER_TYPE 고객유형&#xa;SEGMENT_CODE 세그먼트코드&#xa;STATUS_CODE 상태코드" vertex="1">
+          <mxGeometry height="170" width="240" x="30" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="contract" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;spacingLeft=8;verticalAlign=top;" value="LOAN_CONTRACT 여신 계약 원장&#xa;------------------------------&#xa;PK CONTRACT_ID 계약ID&#xa;FK CUSTOMER_ID 고객ID&#xa;CONTRACT_NO 계약번호&#xa;PRODUCT_CODE 상품코드&#xa;LOAN_TYPE_CODE 여신유형코드&#xa;REPAYMENT_TYPE 상환방식&#xa;EXECUTION_DATE 실행일자&#xa;MATURITY_DATE 만기일자&#xa;PRINCIPAL_AMT 원금금액&#xa;FEE_AMT 취급수수료금액&#xa;DIRECT_COST_AMT 직접원가금액&#xa;STATUS_CODE 상태코드" vertex="1">
+          <mxGeometry height="260" width="270" x="320" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="rate" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;spacingLeft=8;verticalAlign=top;" value="LOAN_RATE 여신 금리 이력&#xa;------------------------------&#xa;PK RATE_ID 금리ID&#xa;FK CONTRACT_ID 계약ID&#xa;RATE_TYPE 금리유형&#xa;ANNUAL_NOMINAL_RATE 연약정금리&#xa;EFFECTIVE_FROM 적용시작일자&#xa;EFFECTIVE_TO 적용종료일자" vertex="1">
+          <mxGeometry height="170" width="240" x="20" y="390" as="geometry" />
+        </mxCell>
+        <mxCell id="schedule" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;spacingLeft=8;verticalAlign=top;" value="LOAN_REPAYMENT_SCHEDULE 여신 상환 스케줄&#xa;------------------------------&#xa;PK SCHEDULE_ID 상환스케줄ID&#xa;FK CONTRACT_ID 계약ID&#xa;INSTALLMENT_NO 회차&#xa;PAYMENT_DATE 상환일자&#xa;SCHEDULED_PAYMENT_AMT 약정납입금액&#xa;SCHEDULED_PRINCIPAL_AMT 약정원금금액&#xa;SCHEDULED_INTEREST_AMT 약정이자금액" vertex="1">
+          <mxGeometry height="200" width="270" x="320" y="441" as="geometry" />
+        </mxCell>
+        <mxCell id="balance" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;spacingLeft=8;verticalAlign=top;" value="LOAN_BALANCE 여신 잔액 원장&#xa;------------------------------&#xa;PK BALANCE_ID 잔액ID&#xa;FK CONTRACT_ID 계약ID&#xa;BASE_DATE 기준일자&#xa;OUTSTANDING_PRINCIPAL_AMT 원금잔액금액&#xa;ACCRUED_INTEREST_AMT 미수이자금액&#xa;STATUS_CODE 상태코드" vertex="1">
+          <mxGeometry height="170" width="240" x="625" y="125" as="geometry" />
+        </mxCell>
+        <mxCell id="batch" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;align=left;spacingLeft=8;verticalAlign=top;" value="LOCF_BATCH_EXECUTION LOCF 배치 실행 이력&#xa;------------------------------&#xa;PK BATCH_EXECUTION_ID 배치실행ID&#xa;BATCH_RUN_NO 배치실행번호&#xa;BASE_DATE 기준일자&#xa;BATCH_TYPE 배치유형&#xa;STATUS_CODE 상태코드&#xa;TARGET_COUNT 대상건수&#xa;PROCESSED_COUNT 처리건수&#xa;ERROR_COUNT 오류건수&#xa;STARTED_AT 시작일시&#xa;FINISHED_AT 종료일시" vertex="1">
+          <mxGeometry height="220" width="260" x="890" y="80" as="geometry" />
+        </mxCell>
+        <mxCell id="step" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;align=left;spacingLeft=8;verticalAlign=top;" value="LOCF_BATCH_STEP_EXECUTION LOCF 배치 단계 실행 이력&#xa;------------------------------&#xa;PK STEP_EXECUTION_ID 단계실행ID&#xa;FK BATCH_EXECUTION_ID 배치실행ID&#xa;STEP_NAME 단계명&#xa;STATUS_CODE 상태코드&#xa;STARTED_AT 시작일시&#xa;FINISHED_AT 종료일시&#xa;PROCESSED_COUNT 처리건수&#xa;ERROR_MESSAGE 오류메시지" vertex="1">
+          <mxGeometry height="200" width="270" x="1430" y="210" as="geometry" />
+        </mxCell>
+        <mxCell id="cashflow" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;align=left;spacingLeft=8;verticalAlign=top;" value="LOCF_CASHFLOW_BASE LOCF 약정 현금흐름 기초&#xa;------------------------------&#xa;PK CASHFLOW_BASE_ID 현금흐름기초ID&#xa;FK BATCH_EXECUTION_ID 배치실행ID&#xa;CONTRACT_ID 계약ID&#xa;CONTRACT_NO 계약번호&#xa;INSTALLMENT_NO 회차&#xa;PAYMENT_DATE 상환일자&#xa;SCHEDULED_PAYMENT_AMT 약정납입금액&#xa;SCHEDULED_PRINCIPAL_AMT 약정원금금액&#xa;SCHEDULED_INTEREST_AMT 약정이자금액" vertex="1">
+          <mxGeometry height="220" width="270" x="1060" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="eir" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;align=left;spacingLeft=8;verticalAlign=top;" value="LOCF_EIR_RESULT LOCF 유효이자율 산출 결과&#xa;------------------------------&#xa;PK EIR_RESULT_ID EIR결과ID&#xa;FK BATCH_EXECUTION_ID 배치실행ID&#xa;CONTRACT_ID 계약ID&#xa;CONTRACT_NO 계약번호&#xa;INITIAL_CARRYING_AMOUNT 최초장부가금액&#xa;MONTHLY_EIR 월유효이자율&#xa;ANNUAL_EIR 연유효이자율" vertex="1">
+          <mxGeometry height="180" width="240" x="1850" y="390" as="geometry" />
+        </mxCell>
+        <mxCell id="amort" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;align=left;spacingLeft=8;verticalAlign=top;" value="LOCF_AMORTIZATION_DTL LOCF 회차별 상각 상세&#xa;------------------------------&#xa;PK AMORTIZATION_DTL_ID 상각상세ID&#xa;FK BATCH_EXECUTION_ID 배치실행ID&#xa;CONTRACT_ID 계약ID&#xa;CONTRACT_NO 계약번호&#xa;INSTALLMENT_NO 회차&#xa;PAYMENT_DATE 상환일자&#xa;OPENING_PRINCIPAL_BAL 기초원금잔액&#xa;OPENING_CARRYING_AMT 기초장부가금액&#xa;EFFECTIVE_INTEREST_REVENUE 유효이자수익금액&#xa;NET_AMORTIZATION_AMT 순상각금액&#xa;CLOSING_PRINCIPAL_BAL 기말원금잔액&#xa;CLOSING_CARRYING_AMT 기말장부가금액" vertex="1">
+          <mxGeometry height="260" width="310" x="640" y="580" as="geometry" />
+        </mxCell>
+        <mxCell id="hdr" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;align=left;spacingLeft=8;verticalAlign=top;" value="LOCF_RESULT_HDR LOCF 계약별 결과 헤더&#xa;------------------------------&#xa;PK RESULT_HDR_ID 결과헤더ID&#xa;FK BATCH_EXECUTION_ID 배치실행ID&#xa;BASE_DATE 기준일자&#xa;CONTRACT_ID 계약ID&#xa;CONTRACT_NO 계약번호&#xa;CUSTOMER_ID 고객ID&#xa;PRODUCT_CODE 상품코드&#xa;INITIAL_CARRYING_AMOUNT 최초장부가금액&#xa;ANNUAL_EIR 연유효이자율&#xa;FINAL_CARRYING_AMOUNT 최종장부가금액&#xa;TOTAL_EFFECTIVE_INTEREST_REV 총유효이자수익금액" vertex="1">
+          <mxGeometry height="240" width="270" x="1230" y="670" as="geometry" />
+        </mxCell>
+        <mxCell id="summary" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;align=left;spacingLeft=8;verticalAlign=top;" value="LOCF_RESULT_SUMMARY LOCF 기준일자 요약 결과&#xa;------------------------------&#xa;PK SUMMARY_ID 요약ID&#xa;FK BATCH_EXECUTION_ID 배치실행ID&#xa;BASE_DATE 기준일자&#xa;PRODUCT_CODE 상품코드&#xa;CONTRACT_COUNT 계약건수&#xa;TOTAL_INITIAL_CARRYING_AMT 최초장부가합계금액&#xa;TOTAL_FINAL_CARRYING_AMT 최종장부가합계금액&#xa;TOTAL_EFFECTIVE_INTEREST_REV 총유효이자수익금액" vertex="1">
+          <mxGeometry height="210" width="250" x="1610" y="640" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="customer" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;" target="contract" value="1:N">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="contract" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;" target="rate" value="1:N">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="contract" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;" target="schedule" value="1:N">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="contract" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;" target="balance" value="1:N">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e5" edge="1" parent="1" source="batch" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6c8ebf;endArrow=block;endFill=1;" target="step" value="1:N">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="batch" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6c8ebf;endArrow=block;endFill=1;" target="target" value="1:N">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="1" source="batch" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6c8ebf;endArrow=block;endFill=1;" target="cashflow" value="1:N">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" edge="1" parent="1" source="batch" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6c8ebf;endArrow=block;endFill=1;" target="eir" value="1:N">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" edge="1" parent="1" source="batch" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6c8ebf;endArrow=block;endFill=1;" target="amort" value="1:N">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" edge="1" parent="1" source="batch" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6c8ebf;endArrow=block;endFill=1;" target="hdr" value="1:N">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" edge="1" parent="1" source="batch" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6c8ebf;endArrow=block;endFill=1;" target="summary" value="1:N">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e12" edge="1" parent="1" source="contract" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;strokeColor=#82b366;endArrow=block;endFill=1;" target="target" value="선정">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e13" edge="1" parent="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;strokeColor=#82b366;endArrow=block;endFill=1;" value="현금흐름 생성">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="600" y="519.9969230769228" as="sourcePoint" />
+            <mxPoint x="1070" y="509.9969230769229" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e14" edge="1" parent="1" source="target" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;strokeColor=#82b366;endArrow=block;endFill=1;" target="eir" value="EIR 계산">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e15" edge="1" parent="1" source="cashflow" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;strokeColor=#82b366;endArrow=block;endFill=1;" target="amort" value="상각 계산">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e16" edge="1" parent="1" source="target" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;strokeColor=#82b366;endArrow=block;endFill=1;" target="hdr" value="계약 결과">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e17" edge="1" parent="1" source="hdr" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;strokeColor=#82b366;endArrow=block;endFill=1;" target="summary" value="요약 집계">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="yr6G2VTQQPqKe2rFkrXl-1" edge="1" parent="1" source="amort" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;strokeColor=#82b366;endArrow=block;endFill=1;" target="target" value="">
+          <mxGeometry relative="1" as="geometry">
+            <mxPoint x="920" y="760" as="sourcePoint" />
+            <mxPoint x="1230" y="760" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="target" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;align=left;spacingLeft=8;verticalAlign=top;" value="LOCF_TARGET_CONTRACT LOCF 산출 대상 계약&#xa;------------------------------&#xa;PK TARGET_ID 대상ID&#xa;FK BATCH_EXECUTION_ID 배치실행ID&#xa;CONTRACT_ID 계약ID&#xa;CONTRACT_NO 계약번호&#xa;CUSTOMER_ID 고객ID&#xa;PRODUCT_CODE 상품코드&#xa;REPAYMENT_TYPE 상환방식&#xa;PRINCIPAL_AMT 원금금액&#xa;FEE_AMT 취급수수료금액&#xa;DIRECT_COST_AMT 직접원가금액&#xa;ANNUAL_NOMINAL_RATE 연약정금리&#xa;TERM_IN_MONTHS 총개월수" vertex="1">
+          <mxGeometry height="260" width="260" x="890" y="870" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

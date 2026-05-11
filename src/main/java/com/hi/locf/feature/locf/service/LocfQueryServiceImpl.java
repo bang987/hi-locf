@@ -36,24 +36,7 @@ public class LocfQueryServiceImpl implements LocfQueryService {
         }
 
         // 상세 회차 결과는 화면이 바로 바인딩하기 쉬운 DTO 형태로 변환한다.
-        List<LocfContractResultDetailRow> details = locfQueryMapper.findLatestResultDetailsByContractNo(contractNo)
-                .stream()
-                .map(detail -> new LocfContractResultDetailRow(
-                        detail.getInstallmentNo() == null ? 0L : detail.getInstallmentNo(),
-                        detail.getPaymentDate(),
-                        detail.getOpeningPrincipalBal(),
-                        detail.getOpeningCarryingAmt(),
-                        detail.getScheduledPaymentAmt(),
-                        detail.getScheduledPrincipalAmt(),
-                        detail.getScheduledInterestAmt(),
-                        detail.getEffectiveInterestRevenue(),
-                        detail.getFeeAmortizationAmt(),
-                        detail.getCostAmortizationAmt(),
-                        detail.getNetAmortizationAmt(),
-                        detail.getClosingPrincipalBal(),
-                        detail.getClosingCarryingAmt()
-                ))
-                .toList();
+        List<LocfContractResultDetailRow> details = createContractResultDetailRows(contractNo);
 
         LocfContractResultHeaderResponse responseHeader = new LocfContractResultHeaderResponse(
                 header.getBatchRunNo(),
@@ -77,27 +60,51 @@ public class LocfQueryServiceImpl implements LocfQueryService {
     @Transactional(readOnly = true)
     public List<LocfSummaryItemResponse> getSummary(LocalDate baseDate) {
         // 기준일자별 상품 단위 요약 결과를 조회한다.
-        return locfQueryMapper.findSummaryByBaseDate(baseDate)
-                .stream()
-                .map(summary -> new LocfSummaryItemResponse(
-                        summary.getBaseDate(),
-                        summary.getProductCode(),
-                        summary.getContractCount() == null ? 0L : summary.getContractCount(),
-                        summary.getTotalInitialCarryingAmt(),
-                        summary.getTotalFinalCarryingAmt(),
-                        summary.getTotalEffectiveInterestRev()
-                ))
-                .toList();
+        List<LocfSummaryItemResponse> responses = new java.util.ArrayList<>();
+        for (var summary : locfQueryMapper.findSummaryByBaseDate(baseDate)) {
+            responses.add(new LocfSummaryItemResponse(
+                    summary.getBaseDate(),
+                    summary.getProductCode(),
+                    summary.getContractCount() == null ? 0L : summary.getContractCount(),
+                    summary.getTotalInitialCarryingAmt(),
+                    summary.getTotalFinalCarryingAmt(),
+                    summary.getTotalEffectiveInterestRev()
+            ));
+        }
+        return responses;
     }
 
     @Override
     @Transactional(readOnly = true)
     public List<LocfSourceContractItemResponse> getSourceContracts() {
         // LOCF 원천계약 현황을 학습용 화면에서 바로 확인할 수 있게 제공한다.
-        return locfQueryMapper.findSourceContracts()
-                .stream()
-                .map(this::toSourceContractResponse)
-                .toList();
+        List<LocfSourceContractItemResponse> responses = new java.util.ArrayList<>();
+        for (LoanContractSource contract : locfQueryMapper.findSourceContracts()) {
+            responses.add(toSourceContractResponse(contract));
+        }
+        return responses;
+    }
+
+    private List<LocfContractResultDetailRow> createContractResultDetailRows(String contractNo) {
+        List<LocfContractResultDetailRow> responses = new java.util.ArrayList<>();
+        for (var detail : locfQueryMapper.findLatestResultDetailsByContractNo(contractNo)) {
+            responses.add(new LocfContractResultDetailRow(
+                    detail.getInstallmentNo() == null ? 0L : detail.getInstallmentNo(),
+                    detail.getPaymentDate(),
+                    detail.getOpeningPrincipalBal(),
+                    detail.getOpeningCarryingAmt(),
+                    detail.getScheduledPaymentAmt(),
+                    detail.getScheduledPrincipalAmt(),
+                    detail.getScheduledInterestAmt(),
+                    detail.getEffectiveInterestRevenue(),
+                    detail.getFeeAmortizationAmt(),
+                    detail.getCostAmortizationAmt(),
+                    detail.getNetAmortizationAmt(),
+                    detail.getClosingPrincipalBal(),
+                    detail.getClosingCarryingAmt()
+            ));
+        }
+        return responses;
     }
 
     private LocfSourceContractItemResponse toSourceContractResponse(LoanContractSource contract) {

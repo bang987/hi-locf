@@ -40,55 +40,98 @@ public class LocfSampleDataInitializer {
 
         int count = Math.max(3, batchSeedProperties.getSeedContractCount());
         for (int i = 1; i <= count; i++) {
-            CustomerMaster customer = CustomerMaster.create(
-                    "CUST-" + String.format("%04d", i),
-                    "고객" + i,
-                    i % 2 == 0 ? "CORP" : "PERSON",
-                    i % 2 == 0 ? "SME" : "RETAIL"
-            );
-            locfSourceDataMapper.insertCustomer(customer);
-
-            LocalDate executionDate = LocalDate.of(2026, 1, 10).plusMonths(i - 1L);
-            long term = 12L + (i % 3L) * 12L;
-            LocalDate maturityDate = executionDate.plusMonths(term);
-            BigDecimal principal = BigDecimal.valueOf(10_000_000L + (i - 1L) * 1_000_000L);
-            BigDecimal fee = BigDecimal.valueOf(150_000L + (i - 1L) * 10_000L);
-            BigDecimal cost = BigDecimal.valueOf(20_000L + (i - 1L) * 2_000L);
-            BigDecimal annualRate = BigDecimal.valueOf(12.5d + (i - 1) * 0.5d);
-
-            LoanContractSource contract = LoanContractSource.create(
-                    "LN-2026-" + String.format("%06d", i),
-                    customer.getCustomerId(),
-                    i % 2 == 0 ? "MORTGAGE" : "CREDIT",
-                    "NORMAL",
-                    i % 3 == 0 ? "MATURITY" : "EQUAL_PAYMENT",
-                    executionDate,
-                    maturityDate,
-                    principal,
-                    fee,
-                    cost
-            );
-            locfSourceDataMapper.insertContract(contract);
-
-            locfSourceDataMapper.insertRate(LoanRateSource.create(
-                    contract.getContractId(),
-                    annualRate,
-                    executionDate,
-                    maturityDate
-            ));
-
-            List<LoanRepaymentScheduleSource> schedules = createSchedules(contract, annualRate, term);
-            for (LoanRepaymentScheduleSource schedule : schedules) {
-                locfSourceDataMapper.insertRepaymentSchedule(schedule);
-            }
-
-            locfSourceDataMapper.insertBalance(LoanBalanceSource.create(
-                    contract.getContractId(),
-                    executionDate,
-                    principal,
-                    BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP)
-            ));
+            createSampleContractData(i);
         }
+    }
+
+    private void createSampleContractData(int sequence) {
+        CustomerMaster customer = createCustomer(sequence);
+        locfSourceDataMapper.insertCustomer(customer);
+
+        LocalDate executionDate = LocalDate.of(2026, 1, 10).plusMonths(sequence - 1L);
+        long termInMonths = 12L + (sequence % 3L) * 12L;
+        LocalDate maturityDate = executionDate.plusMonths(termInMonths);
+        BigDecimal principal = BigDecimal.valueOf(10_000_000L + (sequence - 1L) * 1_000_000L);
+        BigDecimal fee = BigDecimal.valueOf(150_000L + (sequence - 1L) * 10_000L);
+        BigDecimal cost = BigDecimal.valueOf(20_000L + (sequence - 1L) * 2_000L);
+        BigDecimal annualRate = BigDecimal.valueOf(12.5d + (sequence - 1) * 0.5d);
+
+        LoanContractSource contract = createContract(
+                sequence,
+                customer,
+                executionDate,
+                maturityDate,
+                principal,
+                fee,
+                cost
+        );
+        locfSourceDataMapper.insertContract(contract);
+
+        insertRate(contract, annualRate, executionDate, maturityDate);
+        insertRepaymentSchedules(contract, annualRate, termInMonths);
+        insertOpeningBalance(contract, executionDate, principal);
+    }
+
+    private CustomerMaster createCustomer(int sequence) {
+        return CustomerMaster.create(
+                "CUST-" + String.format("%04d", sequence),
+                "고객" + sequence,
+                sequence % 2 == 0 ? "CORP" : "PERSON",
+                sequence % 2 == 0 ? "SME" : "RETAIL"
+        );
+    }
+
+    private LoanContractSource createContract(
+            int sequence,
+            CustomerMaster customer,
+            LocalDate executionDate,
+            LocalDate maturityDate,
+            BigDecimal principal,
+            BigDecimal fee,
+            BigDecimal cost
+    ) {
+        return LoanContractSource.create(
+                "LN-2026-" + String.format("%06d", sequence),
+                customer.getCustomerId(),
+                sequence % 2 == 0 ? "MORTGAGE" : "CREDIT",
+                "NORMAL",
+                sequence % 3 == 0 ? "MATURITY" : "EQUAL_PAYMENT",
+                executionDate,
+                maturityDate,
+                principal,
+                fee,
+                cost
+        );
+    }
+
+    private void insertRate(
+            LoanContractSource contract,
+            BigDecimal annualRate,
+            LocalDate executionDate,
+            LocalDate maturityDate
+    ) {
+        locfSourceDataMapper.insertRate(LoanRateSource.create(
+                contract.getContractId(),
+                annualRate,
+                executionDate,
+                maturityDate
+        ));
+    }
+
+    private void insertRepaymentSchedules(LoanContractSource contract, BigDecimal annualRate, long termInMonths) {
+        List<LoanRepaymentScheduleSource> schedules = createSchedules(contract, annualRate, termInMonths);
+        for (LoanRepaymentScheduleSource schedule : schedules) {
+            locfSourceDataMapper.insertRepaymentSchedule(schedule);
+        }
+    }
+
+    private void insertOpeningBalance(LoanContractSource contract, LocalDate executionDate, BigDecimal principal) {
+        locfSourceDataMapper.insertBalance(LoanBalanceSource.create(
+                contract.getContractId(),
+                executionDate,
+                principal,
+                BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP)
+        ));
     }
 
     private List<LoanRepaymentScheduleSource> createSchedules(LoanContractSource contract, BigDecimal annualRate, long termInMonths) {

@@ -20,6 +20,7 @@ public class LocfEirResult {
             BigDecimal monthlyEir,
             BigDecimal annualEir
     ) {
+        // 계약 1건의 EIR 계산 결과를 담는 팩토리 메서드다.
         LocfEirResult result = new LocfEirResult();
         result.batchExecutionId = batchExecutionId;
         result.contractId = contractId;

@@ -24,6 +24,8 @@ public class LoanRepaymentScheduleSource {
             BigDecimal scheduledPrincipalAmt,
             BigDecimal scheduledInterestAmt
     ) {
+        // 회차별 원천 상환스케줄 1행을 생성한다.
+        LocalDateTime now = LocalDateTime.now();
         LoanRepaymentScheduleSource row = new LoanRepaymentScheduleSource();
         row.contractId = contractId;
         row.installmentNo = installmentNo;
@@ -31,8 +33,8 @@ public class LoanRepaymentScheduleSource {
         row.scheduledPaymentAmt = scheduledPaymentAmt;
         row.scheduledPrincipalAmt = scheduledPrincipalAmt;
         row.scheduledInterestAmt = scheduledInterestAmt;
-        row.createdAt = LocalDateTime.now();
-        row.updatedAt = LocalDateTime.now();
+        row.createdAt = now;
+        row.updatedAt = now;
         return row;
     }
 
