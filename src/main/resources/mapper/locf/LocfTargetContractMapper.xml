@@ -27,40 +27,15 @@
          WHERE BATCH_EXECUTION_ID = #{batchExecutionId}
     </delete>
 
-    <insert id="insertTargetContracts">
+    <insert id="insertTargetContracts" statementType="CALLABLE">
         <!--
-            원천 계약/금리/잔액 테이블에서 LOCF 배치 대상 계약을 한 번에 적재한다.
-            자바에서 계약을 건건이 읽지 않고 INSERT ... SELECT 로 대량 처리하는 구조다.
+            원천 계약/금리/잔액 테이블에서 LOCF 배치 대상 계약을 한 번에 적재하는
+            오라클 프로시저를 호출한다.
         -->
-        INSERT INTO LOCF_TARGET_CONTRACT (
-            TARGET_ID, BATCH_EXECUTION_ID, CONTRACT_ID, CONTRACT_NO, CUSTOMER_ID, PRODUCT_CODE,
-            REPAYMENT_TYPE, PRINCIPAL_AMT, FEE_AMT, DIRECT_COST_AMT, ANNUAL_NOMINAL_RATE,
-            EXECUTION_DATE, MATURITY_DATE, TERM_IN_MONTHS
-        )
-        SELECT SQ_LOCF_TARGET_CONTRACT.NEXTVAL,
-               #{batchExecutionId},
-               c.CONTRACT_ID,
-               c.CONTRACT_NO,
-               c.CUSTOMER_ID,
-               c.PRODUCT_CODE,
-               c.REPAYMENT_TYPE,
-               c.PRINCIPAL_AMT,
-               c.FEE_AMT,
-               c.DIRECT_COST_AMT,
-               r.ANNUAL_NOMINAL_RATE,
-               c.EXECUTION_DATE,
-               c.MATURITY_DATE,
-               (
-                   (EXTRACT(YEAR FROM c.MATURITY_DATE) - EXTRACT(YEAR FROM c.EXECUTION_DATE)) * 12
-                   + (EXTRACT(MONTH FROM c.MATURITY_DATE) - EXTRACT(MONTH FROM c.EXECUTION_DATE))
-               )
-          FROM LOAN_CONTRACT c
-          JOIN LOAN_RATE r
-            ON r.CONTRACT_ID = c.CONTRACT_ID
-          JOIN LOAN_BALANCE b
-            ON b.CONTRACT_ID = c.CONTRACT_ID
-         WHERE c.STATUS_CODE = 'ACTIVE'
-           AND b.BASE_DATE = #{baseDate}
+        { CALL PRC_LOCF_INSERT_TARGET_CONTRACTS(
+            #{batchExecutionId},
+            #{baseDate}
+        ) }
     </insert>
 
     <select id="findTargetContractsByBatchExecutionId" resultMap="locfTargetContractResultMap">

@@ -19,5 +19,7 @@ public interface LocfAmortizationMapper {
 
     int deleteResultSummaryByBatchExecutionId(@Param("batchExecutionId") Long batchExecutionId);
 
-    int insertResultSummary(@Param("batchExecutionId") Long batchExecutionId);
+    void insertResultSummary(@Param("batchExecutionId") Long batchExecutionId);
+
+    long countResultSummary(@Param("batchExecutionId") Long batchExecutionId);
 }

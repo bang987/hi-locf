@@ -80,6 +80,13 @@
          WHERE BATCH_EXECUTION_ID = #{batchExecutionId}
     </update>
 
+    <update id="clearBatchData" statementType="CALLABLE">
+        <!-- 배치 재실행을 위해 중간/결과 테이블 데이터를 프로시저로 한 번에 정리한다. -->
+        { CALL PRC_LOCF_CLEAR_BATCH_DATA(
+            #{batchExecutionId}
+        ) }
+    </update>
+
     <select id="findBatchHistoryByBaseDate" resultMap="locfBatchExecutionResultMap">
         SELECT BATCH_EXECUTION_ID,
                BATCH_RUN_NO,

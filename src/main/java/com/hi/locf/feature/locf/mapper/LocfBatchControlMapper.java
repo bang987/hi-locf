@@ -27,4 +27,6 @@ public interface LocfBatchControlMapper {
     int failStepExecution(LocfBatchStepExecution execution);
 
     List<LocfBatchStepExecution> findStepHistoryByBatchRunNo(@Param("batchRunNo") String batchRunNo);
+
+    void clearBatchData(@Param("batchExecutionId") Long batchExecutionId);
 }

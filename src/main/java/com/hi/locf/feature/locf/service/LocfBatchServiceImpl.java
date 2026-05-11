@@ -205,13 +205,8 @@ public class LocfBatchServiceImpl implements LocfBatchService {
     }
 
     private void clearBatchData(Long batchExecutionId) {
-        // 같은 배치실행ID로 남아 있을 수 있는 중간/결과 데이터를 정리한다.
-        locfTargetContractMapper.deleteTargetContractsByBatchExecutionId(batchExecutionId);
-        locfCashflowMapper.deleteCashflowBaseByBatchExecutionId(batchExecutionId);
-        locfEirMapper.deleteEirResultsByBatchExecutionId(batchExecutionId);
-        locfAmortizationMapper.deleteAmortizationDetailsByBatchExecutionId(batchExecutionId);
-        locfAmortizationMapper.deleteResultHeadersByBatchExecutionId(batchExecutionId);
-        locfAmortizationMapper.deleteResultSummaryByBatchExecutionId(batchExecutionId);
+        // 배치 재실행을 위해 중간/결과 데이터를 DB 프로시저로 한 번에 정리한다.
+        locfBatchControlMapper.clearBatchData(batchExecutionId);
     }
 
     private long createTargetContractsStep(Long batchExecutionId, LocalDate baseDate) {
@@ -219,7 +214,8 @@ public class LocfBatchServiceImpl implements LocfBatchService {
         locfBatchControlMapper.insertStepExecution(step);
 
         try {
-            long processedCount = locfTargetContractMapper.insertTargetContracts(batchExecutionId, baseDate);
+            locfTargetContractMapper.insertTargetContracts(batchExecutionId, baseDate);
+            long processedCount = locfTargetContractMapper.countTargetContracts(batchExecutionId);
             step.complete(processedCount);
             locfBatchControlMapper.completeStepExecution(step);
             return processedCount;
@@ -335,7 +331,8 @@ public class LocfBatchServiceImpl implements LocfBatchService {
         locfBatchControlMapper.insertStepExecution(step);
 
         try {
-            long processedCount = locfAmortizationMapper.insertResultSummary(batchExecutionId);
+            locfAmortizationMapper.insertResultSummary(batchExecutionId);
+            long processedCount = locfAmortizationMapper.countResultSummary(batchExecutionId);
             step.complete(processedCount);
             locfBatchControlMapper.completeStepExecution(step);
             return processedCount;

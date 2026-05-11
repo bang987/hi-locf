@@ -13,7 +13,7 @@ public interface LocfTargetContractMapper {
 
     int deleteTargetContractsByBatchExecutionId(@Param("batchExecutionId") Long batchExecutionId);
 
-    int insertTargetContracts(@Param("batchExecutionId") Long batchExecutionId, @Param("baseDate") LocalDate baseDate);
+    void insertTargetContracts(@Param("batchExecutionId") Long batchExecutionId, @Param("baseDate") LocalDate baseDate);
 
     List<LocfTargetContract> findTargetContractsByBatchExecutionId(@Param("batchExecutionId") Long batchExecutionId);
 
