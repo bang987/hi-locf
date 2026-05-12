@@ -4,6 +4,9 @@ import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@MapperScan(basePackages = "com.hi.locf.feature.locf.mapper")
+@MapperScan(basePackages = {
+        "com.hi.locf.feature.locf.mapper",
+        "com.hi.locf.feature.provision.mapper"
+})
 public class MyBatisConfig {
 }

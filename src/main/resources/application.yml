@@ -19,7 +19,7 @@ spring:
       write-dates-as-timestamps: false
 
 mybatis:
-  mapper-locations: classpath:/mapper/locf/*.xml
+  mapper-locations: classpath*:/mapper/**/*.xml
   configuration:
     map-underscore-to-camel-case: true
     jdbc-type-for-null: 'NULL'

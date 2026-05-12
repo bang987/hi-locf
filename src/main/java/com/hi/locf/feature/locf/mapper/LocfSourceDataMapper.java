@@ -6,8 +6,11 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import com.hi.locf.feature.locf.entity.CustomerMaster;
+import com.hi.locf.feature.locf.entity.CustomerRatingSource;
 import com.hi.locf.feature.locf.entity.LoanBalanceSource;
+import com.hi.locf.feature.locf.entity.LoanCollateralSource;
 import com.hi.locf.feature.locf.entity.LoanContractSource;
+import com.hi.locf.feature.locf.entity.LoanDelinquencySource;
 import com.hi.locf.feature.locf.entity.LoanRateSource;
 import com.hi.locf.feature.locf.entity.LoanRepaymentScheduleSource;
 
@@ -25,6 +28,12 @@ public interface LocfSourceDataMapper {
     int insertRepaymentSchedule(LoanRepaymentScheduleSource schedule);
 
     int insertBalance(LoanBalanceSource balance);
+
+    int insertCustomerRating(CustomerRatingSource rating);
+
+    int insertDelinquency(LoanDelinquencySource delinquency);
+
+    int insertCollateral(LoanCollateralSource collateral);
 
     List<LoanRepaymentScheduleSource> findRepaymentSchedulesByContractId(@Param("contractId") Long contractId);
 }

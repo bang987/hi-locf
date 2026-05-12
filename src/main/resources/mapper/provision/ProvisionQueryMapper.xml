@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hi.locf.feature.provision.mapper.ProvisionQueryMapper">
+
+    <resultMap id="provisionContractResultDetailResultMap" type="com.hi.locf.feature.provision.entity.ProvisionContractResultDetail">
+        <id property="resultDtlId" column="RESULT_DTL_ID"/>
+        <result property="batchExecutionId" column="BATCH_EXECUTION_ID"/>
+        <result property="baseDate" column="BASE_DATE"/>
+        <result property="contractId" column="CONTRACT_ID"/>
+        <result property="contractNo" column="CONTRACT_NO"/>
+        <result property="customerName" column="CUSTOMER_NAME"/>
+        <result property="productCode" column="PRODUCT_CODE"/>
+        <result property="stageCode" column="STAGE_CODE"/>
+        <result property="stageReason" column="STAGE_REASON"/>
+        <result property="carryingAmount" column="CARRYING_AMOUNT"/>
+        <result property="eadAmount" column="EAD_AMOUNT"/>
+        <result property="oneYearPdRate" column="ONE_YEAR_PD_RATE"/>
+        <result property="lifetimePdRate" column="LIFETIME_PD_RATE"/>
+        <result property="lgdRate" column="LGD_RATE"/>
+        <result property="recoveryRate" column="RECOVERY_RATE"/>
+        <result property="eclAmount" column="ECL_AMOUNT"/>
+    </resultMap>
+
+    <resultMap id="provisionResultSummaryResultMap" type="com.hi.locf.feature.provision.entity.ProvisionResultSummary">
+        <id property="summaryId" column="SUMMARY_ID"/>
+        <result property="batchExecutionId" column="BATCH_EXECUTION_ID"/>
+        <result property="baseDate" column="BASE_DATE"/>
+        <result property="productCode" column="PRODUCT_CODE"/>
+        <result property="stageCode" column="STAGE_CODE"/>
+        <result property="contractCount" column="CONTRACT_COUNT"/>
+        <result property="totalCarryingAmount" column="TOTAL_CARRYING_AMOUNT"/>
+        <result property="totalEadAmount" column="TOTAL_EAD_AMOUNT"/>
+        <result property="totalEclAmount" column="TOTAL_ECL_AMOUNT"/>
+    </resultMap>
+
+    <select id="findLatestContractResultsByContractNo" resultMap="provisionContractResultDetailResultMap">
+        SELECT d.*
+          FROM PRV_ECL_RESULT_DTL d
+         WHERE d.BATCH_EXECUTION_ID = (
+               SELECT MAX(BATCH_EXECUTION_ID)
+                 FROM PRV_ECL_RESULT_DTL
+                WHERE CONTRACT_NO = #{contractNo}
+         )
+           AND d.CONTRACT_NO = #{contractNo}
+         ORDER BY d.RESULT_DTL_ID ASC
+    </select>
+
+    <select id="findSummaryByBaseDate" resultMap="provisionResultSummaryResultMap">
+        SELECT *
+          FROM PRV_ECL_RESULT_SUMMARY
+         WHERE BASE_DATE = #{baseDate}
+         ORDER BY PRODUCT_CODE ASC, STAGE_CODE ASC
+    </select>
+</mapper>

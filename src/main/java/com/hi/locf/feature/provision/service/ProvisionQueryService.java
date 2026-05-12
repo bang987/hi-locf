@@ -1,0 +1,14 @@
+package com.hi.locf.feature.provision.service;
+
+import java.time.LocalDate;
+import java.util.List;
+
+import com.hi.locf.feature.provision.dto.ProvisionContractResultRow;
+import com.hi.locf.feature.provision.dto.ProvisionSummaryItemResponse;
+
+public interface ProvisionQueryService {
+
+    List<ProvisionContractResultRow> getContractResult(String contractNo);
+
+    List<ProvisionSummaryItemResponse> getSummary(LocalDate baseDate);
+}

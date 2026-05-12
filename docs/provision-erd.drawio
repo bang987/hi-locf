@@ -1,0 +1,120 @@
+<mxfile host="app.diagrams.net" agent="Codex">
+  <diagram id="provision-erd" name="Provision ERD">
+    <mxGraphModel dx="2200" dy="1300" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2400" pageHeight="1500" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="srcTitle" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontStyle=1;fontSize=20;" value="공통/보강 원천 테이블" vertex="1">
+          <mxGeometry x="40" y="20" width="260" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="prvTitle" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontStyle=1;fontSize=20;" value="충당금 배치/중간/결과 테이블" vertex="1">
+          <mxGeometry x="1100" y="20" width="340" height="30" as="geometry" />
+        </mxCell>
+
+        <mxCell id="customer" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;spacingLeft=8;verticalAlign=top;" value="CUSTOMER_MASTER 고객 마스터&#xa;------------------------------&#xa;PK CUSTOMER_ID 고객ID&#xa;CUSTOMER_NO 고객번호&#xa;CUSTOMER_NAME 고객명&#xa;CUSTOMER_TYPE 고객유형&#xa;SEGMENT_CODE 세그먼트코드&#xa;STATUS_CODE 상태코드" vertex="1">
+          <mxGeometry x="30" y="80" width="240" height="170" as="geometry" />
+        </mxCell>
+        <mxCell id="contract" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;spacingLeft=8;verticalAlign=top;" value="LOAN_CONTRACT 여신 계약 원장&#xa;------------------------------&#xa;PK CONTRACT_ID 계약ID&#xa;FK CUSTOMER_ID 고객ID&#xa;CONTRACT_NO 계약번호&#xa;PRODUCT_CODE 상품코드&#xa;LOAN_TYPE_CODE 여신유형코드&#xa;REPAYMENT_TYPE 상환방식&#xa;EXECUTION_DATE 실행일자&#xa;MATURITY_DATE 만기일자&#xa;PRINCIPAL_AMT 원금금액&#xa;STATUS_CODE 상태코드" vertex="1">
+          <mxGeometry x="310" y="80" width="270" height="230" as="geometry" />
+        </mxCell>
+        <mxCell id="rating" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;spacingLeft=8;verticalAlign=top;" value="CUSTOMER_RATING 고객 등급 및 PD 원천&#xa;------------------------------&#xa;PK RATING_ID 고객등급ID&#xa;FK CUSTOMER_ID 고객ID&#xa;BASE_DATE 기준일자&#xa;RATING_GRADE 등급&#xa;ONE_YEAR_PD_RATE 1년부도확률" vertex="1">
+          <mxGeometry x="30" y="330" width="240" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="delinq" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;spacingLeft=8;verticalAlign=top;" value="LOAN_DELINQUENCY 여신 연체 원천&#xa;------------------------------&#xa;PK DELINQUENCY_ID 연체ID&#xa;FK CONTRACT_ID 계약ID&#xa;BASE_DATE 기준일자&#xa;DELINQUENCY_DAYS 연체일수&#xa;DEFAULT_YN 부도여부" vertex="1">
+          <mxGeometry x="310" y="350" width="250" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="collateral" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=12;align=left;spacingLeft=8;verticalAlign=top;" value="LOAN_COLLATERAL 여신 담보 및 회수율 원천&#xa;------------------------------&#xa;PK COLLATERAL_ID 담보ID&#xa;FK CONTRACT_ID 계약ID&#xa;BASE_DATE 기준일자&#xa;COLLATERAL_TYPE 담보유형&#xa;COLLATERAL_VALUE_AMT 담보가치금액&#xa;RECOVERY_RATE 회수율" vertex="1">
+          <mxGeometry x="620" y="350" width="260" height="180" as="geometry" />
+        </mxCell>
+
+        <mxCell id="batch" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;align=left;spacingLeft=8;verticalAlign=top;" value="PRV_BATCH_EXECUTION 충당금 배치 실행 이력&#xa;------------------------------&#xa;PK BATCH_EXECUTION_ID 배치실행ID&#xa;BATCH_RUN_NO 배치실행번호&#xa;BASE_DATE 기준일자&#xa;BATCH_TYPE 배치유형&#xa;STATUS_CODE 상태코드&#xa;TARGET_COUNT 대상건수&#xa;PROCESSED_COUNT 처리건수&#xa;ERROR_COUNT 오류건수&#xa;STARTED_AT 시작일시&#xa;FINISHED_AT 종료일시" vertex="1">
+          <mxGeometry x="980" y="80" width="270" height="230" as="geometry" />
+        </mxCell>
+        <mxCell id="step" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=12;align=left;spacingLeft=8;verticalAlign=top;" value="PRV_BATCH_STEP_EXECUTION 충당금 배치 단계 실행 이력&#xa;------------------------------&#xa;PK STEP_EXECUTION_ID 단계실행ID&#xa;FK BATCH_EXECUTION_ID 배치실행ID&#xa;STEP_NAME 단계명&#xa;STATUS_CODE 상태코드&#xa;STARTED_AT 시작일시&#xa;FINISHED_AT 종료일시&#xa;PROCESSED_COUNT 처리건수" vertex="1">
+          <mxGeometry x="1620" y="80" width="280" height="210" as="geometry" />
+        </mxCell>
+        <mxCell id="target" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;align=left;spacingLeft=8;verticalAlign=top;" value="PRV_TARGET_CONTRACT 충당금 산출 대상 계약&#xa;------------------------------&#xa;PK TARGET_ID 대상ID&#xa;FK BATCH_EXECUTION_ID 배치실행ID&#xa;BASE_DATE 기준일자&#xa;CONTRACT_ID 계약ID&#xa;CONTRACT_NO 계약번호&#xa;CUSTOMER_ID 고객ID&#xa;CUSTOMER_NAME 고객명&#xa;PRODUCT_CODE 상품코드&#xa;CARRYING_AMOUNT 장부가금액&#xa;DELINQUENCY_DAYS 연체일수&#xa;DEFAULT_YN 부도여부&#xa;RATING_GRADE 등급&#xa;ONE_YEAR_PD_RATE 1년부도확률&#xa;RECOVERY_RATE 회수율" vertex="1">
+          <mxGeometry x="980" y="360" width="300" height="290" as="geometry" />
+        </mxCell>
+        <mxCell id="stage" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;align=left;spacingLeft=8;verticalAlign=top;" value="PRV_STAGE_RESULT 충당금 Stage 산출 결과&#xa;------------------------------&#xa;PK STAGE_RESULT_ID Stage결과ID&#xa;FK BATCH_EXECUTION_ID 배치실행ID&#xa;TARGET_ID 대상ID&#xa;CONTRACT_ID 계약ID&#xa;CONTRACT_NO 계약번호&#xa;STAGE_CODE Stage코드&#xa;STAGE_REASON Stage판정사유" vertex="1">
+          <mxGeometry x="1320" y="360" width="250" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="ead" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;align=left;spacingLeft=8;verticalAlign=top;" value="PRV_EAD_RESULT 충당금 EAD 산출 결과&#xa;------------------------------&#xa;PK EAD_RESULT_ID EAD결과ID&#xa;FK BATCH_EXECUTION_ID 배치실행ID&#xa;TARGET_ID 대상ID&#xa;CONTRACT_ID 계약ID&#xa;CONTRACT_NO 계약번호&#xa;CARRYING_AMOUNT 장부가금액&#xa;EAD_AMOUNT EAD금액" vertex="1">
+          <mxGeometry x="1620" y="360" width="240" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="pd" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;align=left;spacingLeft=8;verticalAlign=top;" value="PRV_PD_RESULT 충당금 PD 산출 결과&#xa;------------------------------&#xa;PK PD_RESULT_ID PD결과ID&#xa;FK BATCH_EXECUTION_ID 배치실행ID&#xa;TARGET_ID 대상ID&#xa;CONTRACT_ID 계약ID&#xa;CONTRACT_NO 계약번호&#xa;STAGE_CODE Stage코드&#xa;ONE_YEAR_PD_RATE 1년부도확률&#xa;LIFETIME_PD_RATE 평생부도확률" vertex="1">
+          <mxGeometry x="1320" y="590" width="250" height="200" as="geometry" />
+        </mxCell>
+        <mxCell id="lgd" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;align=left;spacingLeft=8;verticalAlign=top;" value="PRV_LGD_RESULT 충당금 LGD 산출 결과&#xa;------------------------------&#xa;PK LGD_RESULT_ID LGD결과ID&#xa;FK BATCH_EXECUTION_ID 배치실행ID&#xa;TARGET_ID 대상ID&#xa;CONTRACT_ID 계약ID&#xa;CONTRACT_NO 계약번호&#xa;RECOVERY_RATE 회수율&#xa;LGD_RATE LGD율" vertex="1">
+          <mxGeometry x="1620" y="590" width="240" height="180" as="geometry" />
+        </mxCell>
+        <mxCell id="dtl" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;align=left;spacingLeft=8;verticalAlign=top;" value="PRV_ECL_RESULT_DTL 충당금 계약별 상세 결과&#xa;------------------------------&#xa;PK RESULT_DTL_ID 결과상세ID&#xa;FK BATCH_EXECUTION_ID 배치실행ID&#xa;BASE_DATE 기준일자&#xa;CONTRACT_ID 계약ID&#xa;CONTRACT_NO 계약번호&#xa;CUSTOMER_NAME 고객명&#xa;PRODUCT_CODE 상품코드&#xa;STAGE_CODE Stage코드&#xa;CARRYING_AMOUNT 장부가금액&#xa;EAD_AMOUNT EAD금액&#xa;ONE_YEAR_PD_RATE 1년부도확률&#xa;LIFETIME_PD_RATE 평생부도확률&#xa;LGD_RATE LGD율&#xa;RECOVERY_RATE 회수율&#xa;ECL_AMOUNT ECL금액" vertex="1">
+          <mxGeometry x="980" y="720" width="300" height="300" as="geometry" />
+        </mxCell>
+        <mxCell id="sum" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=12;align=left;spacingLeft=8;verticalAlign=top;" value="PRV_ECL_RESULT_SUMMARY 충당금 기준일자 요약 결과&#xa;------------------------------&#xa;PK SUMMARY_ID 요약ID&#xa;FK BATCH_EXECUTION_ID 배치실행ID&#xa;BASE_DATE 기준일자&#xa;PRODUCT_CODE 상품코드&#xa;STAGE_CODE Stage코드&#xa;CONTRACT_COUNT 계약건수&#xa;TOTAL_CARRYING_AMOUNT 장부가합계금액&#xa;TOTAL_EAD_AMOUNT EAD합계금액&#xa;TOTAL_ECL_AMOUNT ECL합계금액" vertex="1">
+          <mxGeometry x="1320" y="860" width="280" height="220" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e1" edge="1" parent="1" source="customer" target="contract" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;" value="1:N">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="customer" target="rating" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;" value="1:N">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="contract" target="delinq" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;" value="1:N">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="contract" target="collateral" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;" value="1:N">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e5" edge="1" parent="1" source="batch" target="step" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6c8ebf;endArrow=block;endFill=1;" value="1:N">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e6" edge="1" parent="1" source="batch" target="target" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6c8ebf;endArrow=block;endFill=1;" value="1:N">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e7" edge="1" parent="1" source="batch" target="stage" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6c8ebf;endArrow=block;endFill=1;" value="1:N">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e8" edge="1" parent="1" source="batch" target="ead" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6c8ebf;endArrow=block;endFill=1;" value="1:N">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e9" edge="1" parent="1" source="batch" target="pd" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6c8ebf;endArrow=block;endFill=1;" value="1:N">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e10" edge="1" parent="1" source="batch" target="lgd" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6c8ebf;endArrow=block;endFill=1;" value="1:N">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e11" edge="1" parent="1" source="batch" target="dtl" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6c8ebf;endArrow=block;endFill=1;" value="1:N">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e12" edge="1" parent="1" source="batch" target="sum" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;strokeColor=#6c8ebf;endArrow=block;endFill=1;" value="1:N">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e13" edge="1" parent="1" source="contract" target="target" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;strokeColor=#82b366;endArrow=block;endFill=1;" value="선정">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e14" edge="1" parent="1" source="target" target="stage" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;strokeColor=#82b366;endArrow=block;endFill=1;" value="Stage">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e15" edge="1" parent="1" source="target" target="ead" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;strokeColor=#82b366;endArrow=block;endFill=1;" value="EAD">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e16" edge="1" parent="1" source="target" target="pd" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;strokeColor=#82b366;endArrow=block;endFill=1;" value="PD">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e17" edge="1" parent="1" source="target" target="lgd" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;strokeColor=#82b366;endArrow=block;endFill=1;" value="LGD">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e18" edge="1" parent="1" source="target" target="dtl" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;strokeColor=#82b366;endArrow=block;endFill=1;" value="ECL">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e19" edge="1" parent="1" source="dtl" target="sum" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;strokeColor=#82b366;endArrow=block;endFill=1;" value="요약 집계">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

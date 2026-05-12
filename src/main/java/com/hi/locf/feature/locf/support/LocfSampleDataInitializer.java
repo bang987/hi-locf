@@ -11,8 +11,11 @@ import org.springframework.stereotype.Component;
 
 import com.hi.locf.config.BatchSeedProperties;
 import com.hi.locf.feature.locf.entity.CustomerMaster;
+import com.hi.locf.feature.locf.entity.CustomerRatingSource;
 import com.hi.locf.feature.locf.entity.LoanBalanceSource;
+import com.hi.locf.feature.locf.entity.LoanCollateralSource;
 import com.hi.locf.feature.locf.entity.LoanContractSource;
+import com.hi.locf.feature.locf.entity.LoanDelinquencySource;
 import com.hi.locf.feature.locf.entity.LoanRateSource;
 import com.hi.locf.feature.locf.entity.LoanRepaymentScheduleSource;
 import com.hi.locf.feature.locf.mapper.LocfSourceDataMapper;
@@ -70,6 +73,9 @@ public class LocfSampleDataInitializer {
         insertRate(contract, annualRate, executionDate, maturityDate);
         insertRepaymentSchedules(contract, annualRate, termInMonths);
         insertOpeningBalance(contract, executionDate, principal);
+        insertCustomerRating(customer, executionDate, sequence);
+        insertDelinquency(contract, executionDate, sequence);
+        insertCollateral(contract, executionDate, principal, sequence);
     }
 
     private CustomerMaster createCustomer(int sequence) {
@@ -132,6 +138,54 @@ public class LocfSampleDataInitializer {
                 principal,
                 BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP)
         ));
+    }
+
+    private void insertCustomerRating(CustomerMaster customer, LocalDate baseDate, int sequence) {
+        String[] grades = { "A", "B", "C", "D" };
+        BigDecimal[] pdRates = {
+                new BigDecimal("0.0100"),
+                new BigDecimal("0.0300"),
+                new BigDecimal("0.0700"),
+                new BigDecimal("0.1800")
+        };
+        int index = (sequence - 1) % grades.length;
+        locfSourceDataMapper.insertCustomerRating(
+                CustomerRatingSource.create(customer.getCustomerId(), baseDate, grades[index], pdRates[index])
+        );
+    }
+
+    private void insertDelinquency(LoanContractSource contract, LocalDate baseDate, int sequence) {
+        long delinquencyDays;
+        String defaultYn;
+
+        if (sequence % 5 == 0) {
+            delinquencyDays = 120L;
+            defaultYn = "Y";
+        } else if (sequence % 4 == 0) {
+            delinquencyDays = 45L;
+            defaultYn = "N";
+        } else if (sequence % 3 == 0) {
+            delinquencyDays = 10L;
+            defaultYn = "N";
+        } else {
+            delinquencyDays = 0L;
+            defaultYn = "N";
+        }
+
+        locfSourceDataMapper.insertDelinquency(
+                LoanDelinquencySource.create(contract.getContractId(), baseDate, delinquencyDays, defaultYn)
+        );
+    }
+
+    private void insertCollateral(LoanContractSource contract, LocalDate baseDate, BigDecimal principal, int sequence) {
+        String collateralType = sequence % 2 == 0 ? "REAL_ESTATE" : "UNSECURED";
+        BigDecimal recoveryRate = sequence % 2 == 0 ? new BigDecimal("0.75") : new BigDecimal("0.25");
+        BigDecimal collateralValue = principal.multiply(sequence % 2 == 0 ? new BigDecimal("0.85") : new BigDecimal("0.20"), MC)
+                .setScale(2, RoundingMode.HALF_UP);
+
+        locfSourceDataMapper.insertCollateral(
+                LoanCollateralSource.create(contract.getContractId(), baseDate, collateralType, collateralValue, recoveryRate)
+        );
     }
 
     private List<LoanRepaymentScheduleSource> createSchedules(LoanContractSource contract, BigDecimal annualRate, long termInMonths) {

@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hi.locf.feature.provision.mapper.ProvisionCalculationMapper">
+
+    <insert id="insertTargetContracts" statementType="CALLABLE">
+        { CALL PRC_PRV_INSERT_TARGET_CONTRACTS(#{batchExecutionId}, #{baseDate}) }
+    </insert>
+
+    <select id="countTargetContracts" resultType="long">
+        SELECT COUNT(*) FROM PRV_TARGET_CONTRACT WHERE BATCH_EXECUTION_ID = #{batchExecutionId}
+    </select>
+
+    <insert id="calculateStage" statementType="CALLABLE">
+        { CALL PRC_PRV_CALCULATE_STAGE(#{batchExecutionId}) }
+    </insert>
+
+    <select id="countStageResults" resultType="long">
+        SELECT COUNT(*) FROM PRV_STAGE_RESULT WHERE BATCH_EXECUTION_ID = #{batchExecutionId}
+    </select>
+
+    <insert id="calculateEad" statementType="CALLABLE">
+        { CALL PRC_PRV_CALCULATE_EAD(#{batchExecutionId}) }
+    </insert>
+
+    <select id="countEadResults" resultType="long">
+        SELECT COUNT(*) FROM PRV_EAD_RESULT WHERE BATCH_EXECUTION_ID = #{batchExecutionId}
+    </select>
+
+    <insert id="calculatePd" statementType="CALLABLE">
+        { CALL PRC_PRV_CALCULATE_PD(#{batchExecutionId}) }
+    </insert>
+
+    <select id="countPdResults" resultType="long">
+        SELECT COUNT(*) FROM PRV_PD_RESULT WHERE BATCH_EXECUTION_ID = #{batchExecutionId}
+    </select>
+
+    <insert id="calculateLgd" statementType="CALLABLE">
+        { CALL PRC_PRV_CALCULATE_LGD(#{batchExecutionId}) }
+    </insert>
+
+    <select id="countLgdResults" resultType="long">
+        SELECT COUNT(*) FROM PRV_LGD_RESULT WHERE BATCH_EXECUTION_ID = #{batchExecutionId}
+    </select>
+
+    <insert id="calculateEcl" statementType="CALLABLE">
+        { CALL PRC_PRV_CALCULATE_ECL(#{batchExecutionId}) }
+    </insert>
+
+    <select id="countEclResults" resultType="long">
+        SELECT COUNT(*) FROM PRV_ECL_RESULT_DTL WHERE BATCH_EXECUTION_ID = #{batchExecutionId}
+    </select>
+
+    <insert id="insertResultSummary" statementType="CALLABLE">
+        { CALL PRC_PRV_INSERT_RESULT_SUMMARY(#{batchExecutionId}) }
+    </insert>
+
+    <select id="countResultSummary" resultType="long">
+        SELECT COUNT(*) FROM PRV_ECL_RESULT_SUMMARY WHERE BATCH_EXECUTION_ID = #{batchExecutionId}
+    </select>
+</mapper>

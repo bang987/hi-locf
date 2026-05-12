@@ -82,6 +82,39 @@
         )
     </insert>
 
+    <insert id="insertCustomerRating" parameterType="com.hi.locf.feature.locf.entity.CustomerRatingSource">
+        <selectKey keyProperty="ratingId" resultType="long" order="BEFORE">
+            SELECT SQ_CUSTOMER_RATING.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO CUSTOMER_RATING (
+            RATING_ID, CUSTOMER_ID, BASE_DATE, RATING_GRADE, ONE_YEAR_PD_RATE, CREATED_AT, UPDATED_AT
+        ) VALUES (
+            #{ratingId}, #{customerId}, #{baseDate}, #{ratingGrade}, #{oneYearPdRate}, #{createdAt}, #{updatedAt}
+        )
+    </insert>
+
+    <insert id="insertDelinquency" parameterType="com.hi.locf.feature.locf.entity.LoanDelinquencySource">
+        <selectKey keyProperty="delinquencyId" resultType="long" order="BEFORE">
+            SELECT SQ_LOAN_DELINQUENCY.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO LOAN_DELINQUENCY (
+            DELINQUENCY_ID, CONTRACT_ID, BASE_DATE, DELINQUENCY_DAYS, DEFAULT_YN, CREATED_AT, UPDATED_AT
+        ) VALUES (
+            #{delinquencyId}, #{contractId}, #{baseDate}, #{delinquencyDays}, #{defaultYn}, #{createdAt}, #{updatedAt}
+        )
+    </insert>
+
+    <insert id="insertCollateral" parameterType="com.hi.locf.feature.locf.entity.LoanCollateralSource">
+        <selectKey keyProperty="collateralId" resultType="long" order="BEFORE">
+            SELECT SQ_LOAN_COLLATERAL.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO LOAN_COLLATERAL (
+            COLLATERAL_ID, CONTRACT_ID, BASE_DATE, COLLATERAL_TYPE, COLLATERAL_VALUE_AMT, RECOVERY_RATE, CREATED_AT, UPDATED_AT
+        ) VALUES (
+            #{collateralId}, #{contractId}, #{baseDate}, #{collateralType}, #{collateralValueAmt}, #{recoveryRate}, #{createdAt}, #{updatedAt}
+        )
+    </insert>
+
     <select id="findRepaymentSchedulesByContractId" resultMap="loanRepaymentScheduleResultMap">
         SELECT SCHEDULE_ID, CONTRACT_ID, INSTALLMENT_NO, PAYMENT_DATE, SCHEDULED_PAYMENT_AMT,
                SCHEDULED_PRINCIPAL_AMT, SCHEDULED_INTEREST_AMT, CREATED_AT, UPDATED_AT

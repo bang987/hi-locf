@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Provision 배치 학습 화면</title>
+    <style>
+        :root {
+            --bg: #eef4f1;
+            --panel: #f9fcfa;
+            --line: #bfd3ca;
+            --ink: #1f2d28;
+            --accent: #2f6b57;
+            --accent-soft: #dcece5;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at top right, #dff1e8 0%, transparent 25%),
+                linear-gradient(135deg, #edf5f2 0%, #dfece6 100%);
+        }
+        .wrap {
+            max-width: 1380px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 16px;
+        }
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            padding: 18px;
+            box-shadow: 0 8px 24px rgba(34, 58, 49, 0.08);
+        }
+        .wide { grid-column: span 12; }
+        .half { grid-column: span 6; }
+        .third { grid-column: span 4; }
+        h1, h2 { margin: 0 0 12px; }
+        h1 { font-size: 28px; }
+        h2 { font-size: 18px; }
+        .muted { color: #5f726b; font-size: 12px; }
+        .row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        input, button {
+            height: 40px;
+            border-radius: 10px;
+            border: 1px solid var(--line);
+            padding: 0 12px;
+            font-size: 14px;
+        }
+        input { background: white; min-width: 180px; }
+        button {
+            background: var(--accent);
+            color: white;
+            cursor: pointer;
+            border: none;
+            min-width: 120px;
+        }
+        button.secondary {
+            background: var(--accent-soft);
+            color: var(--ink);
+            border: 1px solid var(--line);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        th, td {
+            border-bottom: 1px solid #d9e7e1;
+            padding: 8px 6px;
+            text-align: right;
+            white-space: nowrap;
+        }
+        th:first-child, td:first-child,
+        th:nth-child(2), td:nth-child(2),
+        th:nth-child(3), td:nth-child(3) {
+            text-align: left;
+        }
+        pre {
+            margin: 0;
+            font-size: 12px;
+            white-space: pre-wrap;
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 12px;
+        }
+        @media (max-width: 960px) {
+            .half, .third { grid-column: span 12; }
+        }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <div class="card wide" style="margin-bottom: 16px;">
+        <h1>충당금 실무형 배치 학습 화면</h1>
+        <div class="muted">배치 실행 -> Step 이력 확인 -> 계약별 Stage/EAD/PD/LGD/ECL 조회 -> 기준일자 요약 조회 흐름을 한 화면에서 확인한다.</div>
+    </div>
+
+    <div class="grid">
+        <section class="card third">
+            <h2>1. 배치 실행</h2>
+            <div class="row">
+                <input id="baseDate" type="date" value="2026-01-10">
+                <button onclick="runBatch()">배치 실행</button>
+            </div>
+            <pre id="runResult">실행 결과 대기중</pre>
+        </section>
+
+        <section class="card third">
+            <h2>2. 요약 조회</h2>
+            <div class="row">
+                <input id="summaryDate" type="date" value="2026-01-10">
+                <button class="secondary" onclick="loadSummary()">요약 조회</button>
+            </div>
+            <pre id="summaryResult">요약 결과 대기중</pre>
+        </section>
+
+        <section class="card third">
+            <h2>3. 계약별 조회</h2>
+            <div class="row">
+                <input id="contractNo" type="text" value="LN-2026-000001">
+                <button class="secondary" onclick="loadContractResult()">계약 조회</button>
+            </div>
+            <pre id="contractHeader">계약 조회 대기중</pre>
+        </section>
+
+        <section class="card half">
+            <h2>배치 이력</h2>
+            <div class="row">
+                <input id="historyDate" type="date" value="2026-01-10">
+                <button class="secondary" onclick="loadBatchHistory()">배치이력 조회</button>
+            </div>
+            <div id="batchHistoryTable"></div>
+        </section>
+
+        <section class="card half">
+            <h2>배치 Step 이력</h2>
+            <div class="row">
+                <input id="batchRunNo" type="text" placeholder="배치실행번호">
+                <button class="secondary" onclick="loadStepHistory()">Step 조회</button>
+            </div>
+            <div id="stepHistoryTable"></div>
+        </section>
+
+        <section class="card wide">
+            <h2>계약별 충당금 결과</h2>
+            <div id="contractResultTable"></div>
+        </section>
+
+        <section class="card wide">
+            <h2>기준일자별 충당금 요약</h2>
+            <div id="summaryTable"></div>
+        </section>
+    </div>
+</div>
+
+<script>
+    const apiBase = "/hi-locf/api/v1/provision";
+
+    function money(value) {
+        if (value === null || value === undefined) return "";
+        return Number(value).toLocaleString("ko-KR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function textCell(value) {
+        return value ?? "";
+    }
+
+    function renderTable(targetId, columns, rows) {
+        const target = document.getElementById(targetId);
+        if (!rows || rows.length === 0) {
+            target.innerHTML = "<div class='muted'>조회 결과가 없습니다.</div>";
+            return;
+        }
+
+        const header = columns.map(col => `<th>${col.label}</th>`).join("");
+        const body = rows.map(row => {
+            const cells = columns.map(col => {
+                const value = row[col.key];
+                return `<td>${col.format ? col.format(value) : textCell(value)}</td>`;
+            }).join("");
+            return `<tr>${cells}</tr>`;
+        }).join("");
+
+        target.innerHTML = `<table><thead><tr>${header}</tr></thead><tbody>${body}</tbody></table>`;
+    }
+
+    async function fetchJson(url, options) {
+        const response = await fetch(url, options);
+        const json = await response.json();
+        if (!json.success) {
+            throw new Error(json.error?.message || "API 호출 실패");
+        }
+        return json.data;
+    }
+
+    async function runBatch() {
+        try {
+            const baseDate = document.getElementById("baseDate").value;
+            const data = await fetchJson(`${apiBase}/batches/run`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ baseDate, batchType: "MANUAL" })
+            });
+
+            document.getElementById("runResult").textContent = JSON.stringify(data, null, 2);
+            document.getElementById("batchRunNo").value = data.batchRunNo;
+            document.getElementById("historyDate").value = baseDate;
+            document.getElementById("summaryDate").value = baseDate;
+
+            await loadBatchHistory();
+            await loadStepHistory();
+            await loadSummary();
+            await loadContractResult();
+        } catch (error) {
+            document.getElementById("runResult").textContent = error.message;
+        }
+    }
+
+    async function loadBatchHistory() {
+        try {
+            const baseDate = document.getElementById("historyDate").value;
+            const query = baseDate ? `?baseDate=${baseDate}` : "";
+            const data = await fetchJson(`${apiBase}/batches${query}`);
+            renderTable("batchHistoryTable", [
+                { key: "batchRunNo", label: "배치실행번호" },
+                { key: "baseDate", label: "기준일자" },
+                { key: "batchType", label: "유형" },
+                { key: "statusCode", label: "상태" },
+                { key: "targetCount", label: "대상건수" },
+                { key: "processedCount", label: "처리건수" },
+                { key: "errorCount", label: "오류건수" }
+            ], data);
+        } catch (error) {
+            document.getElementById("batchHistoryTable").innerHTML = `<div class='muted'>${error.message}</div>`;
+        }
+    }
+
+    async function loadStepHistory() {
+        try {
+            const batchRunNo = document.getElementById("batchRunNo").value.trim();
+            if (!batchRunNo) return;
+            const data = await fetchJson(`${apiBase}/batches/${batchRunNo}/steps`);
+            renderTable("stepHistoryTable", [
+                { key: "stepName", label: "단계명" },
+                { key: "statusCode", label: "상태" },
+                { key: "processedCount", label: "처리건수" },
+                { key: "startedAt", label: "시작일시" },
+                { key: "finishedAt", label: "종료일시" }
+            ], data);
+        } catch (error) {
+            document.getElementById("stepHistoryTable").innerHTML = `<div class='muted'>${error.message}</div>`;
+        }
+    }
+
+    async function loadContractResult() {
+        try {
+            const contractNo = document.getElementById("contractNo").value.trim();
+            const data = await fetchJson(`${apiBase}/contracts/${contractNo}`);
+            document.getElementById("contractHeader").textContent = JSON.stringify(data, null, 2);
+            renderTable("contractResultTable", [
+                { key: "contractNo", label: "계약번호" },
+                { key: "customerName", label: "고객명" },
+                { key: "productCode", label: "상품코드" },
+                { key: "stageCode", label: "Stage" },
+                { key: "stageReason", label: "Stage 사유" },
+                { key: "carryingAmount", label: "장부가", format: money },
+                { key: "eadAmount", label: "EAD", format: money },
+                { key: "oneYearPdRate", label: "1년 PD", format: money },
+                { key: "lifetimePdRate", label: "Lifetime PD", format: money },
+                { key: "lgdRate", label: "LGD", format: money },
+                { key: "recoveryRate", label: "회수율", format: money },
+                { key: "eclAmount", label: "ECL", format: money }
+            ], data);
+        } catch (error) {
+            document.getElementById("contractHeader").textContent = error.message;
+            document.getElementById("contractResultTable").innerHTML = "";
+        }
+    }
+
+    async function loadSummary() {
+        try {
+            const baseDate = document.getElementById("summaryDate").value;
+            const data = await fetchJson(`${apiBase}/results/summary?baseDate=${baseDate}`);
+            document.getElementById("summaryResult").textContent = JSON.stringify(data, null, 2);
+            renderTable("summaryTable", [
+                { key: "baseDate", label: "기준일자" },
+                { key: "productCode", label: "상품코드" },
+                { key: "stageCode", label: "Stage" },
+                { key: "contractCount", label: "계약건수" },
+                { key: "totalCarryingAmount", label: "장부가합계", format: money },
+                { key: "totalEadAmount", label: "EAD합계", format: money },
+                { key: "totalEclAmount", label: "ECL합계", format: money }
+            ], data);
+        } catch (error) {
+            document.getElementById("summaryResult").textContent = error.message;
+            document.getElementById("summaryTable").innerHTML = "";
+        }
+    }
+
+    loadBatchHistory();
+</script>
+</body>
+</html>

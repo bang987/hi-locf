@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<w2:root
+        xmlns:w2="http://www.inswave.com/websquare"
+        xmlns:xf="http://www.w3.org/2002/xforms">
+
+    <!--
+        학습용 WebSquare 충당금 화면 예제
+
+        목적:
+        1. 충당금 배치 실행
+        2. 배치 이력 / step 이력 조회
+        3. 계약별 Stage / EAD / PD / LGD / ECL 결과 조회
+        4. 기준일자별 상품 / Stage 요약 조회
+    -->
+
+    <w2:head>
+        <w2:type>PAGE</w2:type>
+        <w2:model>
+            <w2:dataCollection>
+                <w2:dataMap id="dmBatchRunRequest" baseNode="map">
+                    <w2:key id="baseDate" dataType="text" value="2026-01-10"/>
+                    <w2:key id="batchType" dataType="text" value="MANUAL"/>
+                </w2:dataMap>
+
+                <w2:dataMap id="dmBatchRunResult" baseNode="map"/>
+
+                <w2:dataList id="dlBatchHistory" repeatNode="row">
+                    <w2:columnInfo>
+                        <w2:column id="batchRunNo" dataType="text"/>
+                        <w2:column id="baseDate" dataType="text"/>
+                        <w2:column id="batchType" dataType="text"/>
+                        <w2:column id="statusCode" dataType="text"/>
+                        <w2:column id="targetCount" dataType="number"/>
+                        <w2:column id="processedCount" dataType="number"/>
+                        <w2:column id="errorCount" dataType="number"/>
+                    </w2:columnInfo>
+                </w2:dataList>
+
+                <w2:dataList id="dlStepHistory" repeatNode="row">
+                    <w2:columnInfo>
+                        <w2:column id="stepName" dataType="text"/>
+                        <w2:column id="statusCode" dataType="text"/>
+                        <w2:column id="processedCount" dataType="number"/>
+                        <w2:column id="startedAt" dataType="text"/>
+                        <w2:column id="finishedAt" dataType="text"/>
+                    </w2:columnInfo>
+                </w2:dataList>
+
+                <w2:dataList id="dlContractResults" repeatNode="row">
+                    <w2:columnInfo>
+                        <w2:column id="contractNo" dataType="text"/>
+                        <w2:column id="customerName" dataType="text"/>
+                        <w2:column id="productCode" dataType="text"/>
+                        <w2:column id="stageCode" dataType="text"/>
+                        <w2:column id="stageReason" dataType="text"/>
+                        <w2:column id="carryingAmount" dataType="number"/>
+                        <w2:column id="eadAmount" dataType="number"/>
+                        <w2:column id="oneYearPdRate" dataType="number"/>
+                        <w2:column id="lifetimePdRate" dataType="number"/>
+                        <w2:column id="lgdRate" dataType="number"/>
+                        <w2:column id="recoveryRate" dataType="number"/>
+                        <w2:column id="eclAmount" dataType="number"/>
+                    </w2:columnInfo>
+                </w2:dataList>
+
+                <w2:dataList id="dlSummary" repeatNode="row">
+                    <w2:columnInfo>
+                        <w2:column id="baseDate" dataType="text"/>
+                        <w2:column id="productCode" dataType="text"/>
+                        <w2:column id="stageCode" dataType="text"/>
+                        <w2:column id="contractCount" dataType="number"/>
+                        <w2:column id="totalCarryingAmount" dataType="number"/>
+                        <w2:column id="totalEadAmount" dataType="number"/>
+                        <w2:column id="totalEclAmount" dataType="number"/>
+                    </w2:columnInfo>
+                </w2:dataList>
+            </w2:dataCollection>
+
+            <xf:submission id="sbmRunBatch"
+                           ref="data:dmBatchRunRequest"
+                           action="http://localhost:8080/hi-locf/api/v1/provision/batches/run"
+                           method="post"
+                           mediatype="application/json"/>
+
+            <xf:submission id="sbmBatchHistory"
+                           method="get"
+                           mediatype="application/json"/>
+
+            <xf:submission id="sbmStepHistory"
+                           method="get"
+                           mediatype="application/json"/>
+
+            <xf:submission id="sbmContractResult"
+                           method="get"
+                           mediatype="application/json"/>
+
+            <xf:submission id="sbmSummary"
+                           method="get"
+                           mediatype="application/json"/>
+        </w2:model>
+
+        <w2:script lazy="false"><![CDATA[
+            function scwin.onload() {
+                scwin.loadBatchHistory();
+            }
+
+            scwin.runBatch = function() {
+                var baseDate = $p.getComponentById("iptBaseDate").getValue();
+                var request = $p.getDataCollection("dmBatchRunRequest");
+                request.set("baseDate", baseDate);
+                request.set("batchType", "MANUAL");
+                $p.getSubmission("sbmRunBatch").send();
+            };
+
+            scwin.loadBatchHistory = function() {
+                var baseDate = $p.getComponentById("iptHistoryDate").getValue();
+                var action = "http://localhost:8080/hi-locf/api/v1/provision/batches";
+                if (baseDate) {
+                    action = action + "?baseDate=" + baseDate;
+                }
+                $p.getSubmission("sbmBatchHistory").setAction(action);
+                $p.getSubmission("sbmBatchHistory").send();
+            };
+
+            scwin.loadStepHistory = function() {
+                var batchRunNo = $p.getComponentById("iptBatchRunNo").getValue();
+                if (!batchRunNo) {
+                    alert("배치실행번호를 입력하세요.");
+                    return;
+                }
+                $p.getSubmission("sbmStepHistory").setAction(
+                    "http://localhost:8080/hi-locf/api/v1/provision/batches/" + batchRunNo + "/steps"
+                );
+                $p.getSubmission("sbmStepHistory").send();
+            };
+
+            scwin.loadContractResult = function() {
+                var contractNo = $p.getComponentById("iptContractNo").getValue();
+                if (!contractNo) {
+                    alert("계약번호를 입력하세요.");
+                    return;
+                }
+                $p.getSubmission("sbmContractResult").setAction(
+                    "http://localhost:8080/hi-locf/api/v1/provision/contracts/" + contractNo
+                );
+                $p.getSubmission("sbmContractResult").send();
+            };
+
+            scwin.loadSummary = function() {
+                var baseDate = $p.getComponentById("iptSummaryDate").getValue();
+                if (!baseDate) {
+                    alert("기준일자를 입력하세요.");
+                    return;
+                }
+                $p.getSubmission("sbmSummary").setAction(
+                    "http://localhost:8080/hi-locf/api/v1/provision/results/summary?baseDate=" + baseDate
+                );
+                $p.getSubmission("sbmSummary").send();
+            };
+
+            scwin.handleListResponse = function(responseText, dataListId) {
+                var response = JSON.parse(responseText);
+                if (!response.success) {
+                    alert(response.error ? response.error.message : "조회 중 오류가 발생했습니다.");
+                    return;
+                }
+                $p.getDataCollection(dataListId).setJSON(response.data);
+            };
+
+            scwin.handleBatchRunResponse = function(responseText) {
+                var response = JSON.parse(responseText);
+                if (!response.success) {
+                    alert(response.error ? response.error.message : "배치 실행 중 오류가 발생했습니다.");
+                    return;
+                }
+
+                var result = response.data;
+                $p.getDataCollection("dmBatchRunResult").setJSON(result);
+                $p.getComponentById("iptBatchRunNo").setValue(result.batchRunNo);
+                $p.getComponentById("iptHistoryDate").setValue(result.baseDate);
+                $p.getComponentById("iptSummaryDate").setValue(result.baseDate);
+
+                scwin.loadBatchHistory();
+                scwin.loadStepHistory();
+                scwin.loadSummary();
+                scwin.loadContractResult();
+            };
+
+            function sbmRunBatch_submitdone(e) {
+                scwin.handleBatchRunResponse(e.responseBody);
+            }
+
+            function sbmBatchHistory_submitdone(e) {
+                scwin.handleListResponse(e.responseBody, "dlBatchHistory");
+            }
+
+            function sbmStepHistory_submitdone(e) {
+                scwin.handleListResponse(e.responseBody, "dlStepHistory");
+            }
+
+            function sbmContractResult_submitdone(e) {
+                scwin.handleListResponse(e.responseBody, "dlContractResults");
+            }
+
+            function sbmSummary_submitdone(e) {
+                scwin.handleListResponse(e.responseBody, "dlSummary");
+            }
+        ]]></w2:script>
+    </w2:head>
+
+    <w2:body ev:onload="scwin.onload()">
+        <w2:group style="padding:24px;">
+            <w2:group style="margin-bottom:16px;">
+                <w2:textbox value="충당금 WebSquare 학습 화면" style="font-size:24px;font-weight:bold;"/>
+                <w2:textbox value="배치 실행 -> step 이력 -> 계약별 충당금 결과 -> 요약 조회 흐름을 WebSquare 기준으로 학습한다."
+                            style="margin-top:8px;color:#666666;"/>
+            </w2:group>
+
+            <w2:group style="margin-bottom:16px;">
+                <w2:textbox value="1. 배치 실행" style="font-size:18px;font-weight:bold;"/>
+                <w2:inputCalendar id="iptBaseDate" dataType="date" value="2026-01-10" style="width:140px;"/>
+                <w2:trigger label="배치 실행" ev:onclick="scwin.runBatch();"/>
+                <w2:input id="iptBatchRunNo" style="width:220px;" placeholder="배치실행번호"/>
+                <w2:trigger label="Step 조회" ev:onclick="scwin.loadStepHistory();"/>
+                <w2:gridView id="grdBatchRunResult" dataList="dmBatchRunResult" style="width:100%;height:110px;margin-top:12px;">
+                    <w2:columns>
+                        <w2:column id="batchRunNo" width="180" headerValue="배치실행번호"/>
+                        <w2:column id="baseDate" width="100" headerValue="기준일자"/>
+                        <w2:column id="statusCode" width="90" headerValue="상태"/>
+                        <w2:column id="targetCount" width="80" headerValue="대상건수"/>
+                        <w2:column id="processedCount" width="80" headerValue="처리건수"/>
+                    </w2:columns>
+                </w2:gridView>
+            </w2:group>
+
+            <w2:group style="margin-bottom:16px;">
+                <w2:textbox value="2. 조회 조건" style="font-size:18px;font-weight:bold;"/>
+                <w2:inputCalendar id="iptHistoryDate" dataType="date" value="2026-01-10" style="width:140px;"/>
+                <w2:trigger label="배치이력 조회" ev:onclick="scwin.loadBatchHistory();"/>
+                <w2:input id="iptContractNo" style="width:180px;" value="LN-2026-000001"/>
+                <w2:trigger label="계약 조회" ev:onclick="scwin.loadContractResult();"/>
+                <w2:inputCalendar id="iptSummaryDate" dataType="date" value="2026-01-10" style="width:140px;"/>
+                <w2:trigger label="요약 조회" ev:onclick="scwin.loadSummary();"/>
+            </w2:group>
+
+            <w2:group style="margin-bottom:16px;">
+                <w2:textbox value="배치 이력 / Step 이력" style="font-size:16px;font-weight:bold;"/>
+                <w2:gridView id="grdBatchHistory" dataList="dlBatchHistory" style="width:100%;height:180px;">
+                    <w2:columns>
+                        <w2:column id="batchRunNo" width="180" headerValue="배치실행번호"/>
+                        <w2:column id="baseDate" width="100" headerValue="기준일자"/>
+                        <w2:column id="batchType" width="80" headerValue="유형"/>
+                        <w2:column id="statusCode" width="90" headerValue="상태"/>
+                        <w2:column id="targetCount" width="80" headerValue="대상건수"/>
+                        <w2:column id="processedCount" width="80" headerValue="처리건수"/>
+                        <w2:column id="errorCount" width="80" headerValue="오류건수"/>
+                    </w2:columns>
+                </w2:gridView>
+
+                <w2:gridView id="grdStepHistory" dataList="dlStepHistory" style="width:100%;height:180px;margin-top:12px;">
+                    <w2:columns>
+                        <w2:column id="stepName" width="160" headerValue="단계명"/>
+                        <w2:column id="statusCode" width="90" headerValue="상태"/>
+                        <w2:column id="processedCount" width="80" headerValue="처리건수"/>
+                        <w2:column id="startedAt" width="170" headerValue="시작일시"/>
+                        <w2:column id="finishedAt" width="170" headerValue="종료일시"/>
+                    </w2:columns>
+                </w2:gridView>
+            </w2:group>
+
+            <w2:group style="margin-bottom:16px;">
+                <w2:textbox value="계약별 충당금 결과" style="font-size:16px;font-weight:bold;"/>
+                <w2:gridView id="grdContractResults" dataList="dlContractResults" style="width:100%;height:220px;">
+                    <w2:columns>
+                        <w2:column id="contractNo" width="140" headerValue="계약번호"/>
+                        <w2:column id="customerName" width="100" headerValue="고객명"/>
+                        <w2:column id="productCode" width="100" headerValue="상품코드"/>
+                        <w2:column id="stageCode" width="80" headerValue="Stage"/>
+                        <w2:column id="stageReason" width="120" headerValue="Stage 사유"/>
+                        <w2:column id="carryingAmount" width="110" headerValue="장부가"/>
+                        <w2:column id="eadAmount" width="110" headerValue="EAD"/>
+                        <w2:column id="oneYearPdRate" width="90" headerValue="1년PD"/>
+                        <w2:column id="lifetimePdRate" width="100" headerValue="LifetimePD"/>
+                        <w2:column id="lgdRate" width="90" headerValue="LGD"/>
+                        <w2:column id="recoveryRate" width="90" headerValue="회수율"/>
+                        <w2:column id="eclAmount" width="110" headerValue="ECL"/>
+                    </w2:columns>
+                </w2:gridView>
+            </w2:group>
+
+            <w2:group>
+                <w2:textbox value="기준일자별 충당금 요약" style="font-size:16px;font-weight:bold;"/>
+                <w2:gridView id="grdSummary" dataList="dlSummary" style="width:100%;height:180px;">
+                    <w2:columns>
+                        <w2:column id="baseDate" width="100" headerValue="기준일자"/>
+                        <w2:column id="productCode" width="120" headerValue="상품코드"/>
+                        <w2:column id="stageCode" width="80" headerValue="Stage"/>
+                        <w2:column id="contractCount" width="80" headerValue="계약건수"/>
+                        <w2:column id="totalCarryingAmount" width="120" headerValue="장부가합계"/>
+                        <w2:column id="totalEadAmount" width="120" headerValue="EAD합계"/>
+                        <w2:column id="totalEclAmount" width="120" headerValue="ECL합계"/>
+                    </w2:columns>
+                </w2:gridView>
+            </w2:group>
+        </w2:group>
+    </w2:body>
+</w2:root>
