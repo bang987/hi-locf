@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.hi.locf.common.api.ApiResponse;
 import com.hi.locf.feature.provision.dto.ProvisionContractResultRow;
+import com.hi.locf.feature.provision.dto.ProvisionSegmentSummaryItemResponse;
 import com.hi.locf.feature.provision.dto.ProvisionSummaryItemResponse;
 import com.hi.locf.feature.provision.service.ProvisionQueryService;
 
@@ -36,4 +37,13 @@ public class ProvisionQueryController {
     ) {
         return ApiResponse.ok(provisionQueryService.getSummary(baseDate));
     }
+    
+    @GetMapping("/results/segment-summary")
+    public ApiResponse<List<ProvisionSegmentSummaryItemResponse>> getSegmentSummary(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate baseDate
+    ) {
+        return ApiResponse.ok(provisionQueryService.getSegmentSummary(baseDate));
+    }
+
+    
 }

@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.hi.locf.common.code.ErrorCode;
 import com.hi.locf.common.exception.BusinessException;
 import com.hi.locf.feature.provision.dto.ProvisionContractResultRow;
+import com.hi.locf.feature.provision.dto.ProvisionSegmentSummaryItemResponse;
 import com.hi.locf.feature.provision.dto.ProvisionSummaryItemResponse;
 import com.hi.locf.feature.provision.entity.ProvisionContractResultDetail;
 import com.hi.locf.feature.provision.entity.ProvisionResultSummary;
@@ -69,4 +70,11 @@ public class ProvisionQueryServiceImpl implements ProvisionQueryService {
         }
         return responses;
     }
+    
+    
+    @Transactional(readOnly = true)
+    public List<ProvisionSegmentSummaryItemResponse> getSegmentSummary(LocalDate baseDate) {
+        return provisionQueryMapper.findSegmentSummaryByBaseDate(baseDate);
+    }
+
 }

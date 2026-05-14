@@ -34,6 +34,21 @@
         <result property="totalEadAmount" column="TOTAL_EAD_AMOUNT"/>
         <result property="totalEclAmount" column="TOTAL_ECL_AMOUNT"/>
     </resultMap>
+    
+    <resultMap id="provisionsSegmentSummaryResultMap" type="com.hi.locf.feature.provision.entity.ProvisionResultSummary">
+        <id property="summaryId" column="SUMMARY_ID"/>
+        <result property="batchExecutionId" column="BATCH_EXECUTION_ID"/>
+        <result property="baseDate" column="BASE_DATE"/>
+        <result property="customerType" column="CUSTOMER_TYPE"/>
+        <result property="segmentCode"	column="SEGMENT_CODE"/>
+        <result property="stageCode" column="STAGE_CODE"/>
+        <result property="contractCount" column="CONTRACT_COUNT"/>
+        <result property="totalCarryingAmount" column="TOTAL_CARRYING_AMOUNT"/>
+        <result property="totalEadAmount" column="TOTAL_EAD_AMOUNT"/>
+        <result property="totalEclAmount" column="TOTAL_ECL_AMOUNT"/>
+    </resultMap>
+    
+    
 
     <select id="findLatestContractResultsByContractNo" resultMap="provisionContractResultDetailResultMap">
         SELECT d.*
@@ -52,5 +67,30 @@
           FROM PRV_ECL_RESULT_SUMMARY
          WHERE BASE_DATE = #{baseDate}
          ORDER BY PRODUCT_CODE ASC, STAGE_CODE ASC
+    </select>
+    
+    <select id="findSegmentSummaryByBaseDate" resultMap="provisionsSegmentSummaryResultMap">
+    	SELECT
+    		d.BASE_DATE,
+    		cm.CUSTOMER_TYPE,
+    		cm.SEGMENT_CODE,
+    		d.STAGE_CODE,
+    		COUNT(*) AS CONTRACT_COUNT,
+    		SUM(d.CARRYING_AMOUNT) AS TOTAL_CARRYING_AMOUNT,
+    		SUM(d.EAD_AMOUNT) AS TOTAL_EAD_AMOUNT,
+    		SUM(d.ECL_AMOUNT) AS TOTAL_ECL_AMOUNT
+		FROM PRV_ECL_RESULT_DTL d JOIN LOAN_CONTRACT c ON c.CONTRACT_ID = d.CONTRACT_ID
+								 JOIN CUSTOMER_MASTER cm ON cm.CUSTOMER_ID = c.CUSTOMER_ID
+		WHERE d.BASE_DATE = #{baseDate}
+		GROUP BY
+    		d.BASE_DATE,
+    		cm.CUSTOMER_TYPE,
+    		cm.SEGMENT_CODE,
+    		d.STAGE_CODE
+		ORDER BY
+    		cm.CUSTOMER_TYPE,
+    		cm.SEGMENT_CODE,
+    		d.STAGE_CODE
+    	
     </select>
 </mapper>
