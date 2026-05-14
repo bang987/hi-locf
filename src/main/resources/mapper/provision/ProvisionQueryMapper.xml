@@ -35,12 +35,10 @@
         <result property="totalEclAmount" column="TOTAL_ECL_AMOUNT"/>
     </resultMap>
     
-    <resultMap id="provisionsSegmentSummaryResultMap" type="com.hi.locf.feature.provision.entity.ProvisionResultSummary">
-        <id property="summaryId" column="SUMMARY_ID"/>
-        <result property="batchExecutionId" column="BATCH_EXECUTION_ID"/>
+    <resultMap id="provisionsSegmentSummaryResultMap" type="com.hi.locf.feature.provision.dto.ProvisionSegmentSummaryItemResponse">
         <result property="baseDate" column="BASE_DATE"/>
         <result property="customerType" column="CUSTOMER_TYPE"/>
-        <result property="segmentCode"	column="SEGMENT_CODE"/>
+        <result property="segmentCode" column="SEGMENT_CODE"/>
         <result property="stageCode" column="STAGE_CODE"/>
         <result property="contractCount" column="CONTRACT_COUNT"/>
         <result property="totalCarryingAmount" column="TOTAL_CARRYING_AMOUNT"/>
