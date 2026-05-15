@@ -78,7 +78,7 @@ public class LocfBatchServiceImpl implements LocfBatchService {
                 : request.getBatchType();
 
         LocfBatchExecution execution = LocfBatchExecution.start(batchRunNo, request.getBaseDate(), batchType);
-        locfBatchControlMapper.insertBatchExecution(execution);
+        locfBatchControlMapper.insertBatchExecution(execution);// insert 쿼리 실행
 
         try {
             clearBatchData(execution.getBatchExecutionId());

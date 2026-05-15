@@ -12,8 +12,6 @@ public interface ProvisionQueryService {
     List<ProvisionContractResultRow> getContractResult(String contractNo);
 
     List<ProvisionSummaryItemResponse> getSummary(LocalDate baseDate);
-    
-    
-    List<ProvisionSegmentSummaryItemResponse> getSegmentSummary(LocalDate baseDate);
 
+    List<ProvisionSegmentSummaryItemResponse> getSegmentSummary(LocalDate baseDate);
 }

@@ -29,6 +29,9 @@ public class LocfQueryController {
     @GetMapping("/contracts/{contractNo}")
     public ApiResponse<LocfContractResultResponse> getContractResult(@PathVariable String contractNo) {
         // 계약번호로 최신 LOCF 산출 결과를 조회한다.
+    	//@RestController가 붙어 있으면 Spring은
+    	//Controller가 반환한 객체를 HTTP Response Body로 써야 한다고 판단합니다.
+    	//그래서 내부적으로: Jackson 같은 JSON 변환기 getter 기준으로 객체를 JSON 문자열로 바꿉니다.
         return ApiResponse.ok(locfQueryService.getContractResult(contractNo));
     }
 

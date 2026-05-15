@@ -34,20 +34,20 @@ class ProvisionBatchServiceIntegrationTest {
 
         ProvisionBatchRunResponse response = provisionBatchService.runBatch(request);
 
-        assertThat(response.batchRunNo()).startsWith("PRV-");
-        assertThat(response.statusCode()).isEqualTo("COMPLETED");
-        assertThat(response.targetCount()).isGreaterThan(0L);
-        assertThat(response.processedCount()).isGreaterThan(0L);
+        assertThat(response.getBatchRunNo()).startsWith("PRV-");
+        assertThat(response.getStatusCode()).isEqualTo("COMPLETED");
+        assertThat(response.getTargetCount()).isGreaterThan(0L);
+        assertThat(response.getProcessedCount()).isGreaterThan(0L);
 
         List<ProvisionContractResultRow> contractResults = provisionQueryService.getContractResult("LN-2026-000001");
         assertThat(contractResults).isNotEmpty();
-        assertThat(contractResults.get(0).stageCode()).isNotBlank();
-        assertThat(contractResults.get(0).carryingAmount()).isEqualByComparingTo(new BigDecimal("9870000.00"));
-        assertThat(contractResults.get(0).eadAmount()).isNotNull();
-        assertThat(contractResults.get(0).eclAmount()).isNotNull();
+        assertThat(contractResults.get(0).getStageCode()).isNotBlank();
+        assertThat(contractResults.get(0).getCarryingAmount()).isEqualByComparingTo(new BigDecimal("9870000.00"));
+        assertThat(contractResults.get(0).getEadAmount()).isNotNull();
+        assertThat(contractResults.get(0).getEclAmount()).isNotNull();
 
         List<ProvisionSummaryItemResponse> summaries = provisionQueryService.getSummary(LocalDate.of(2026, 1, 10));
         assertThat(summaries).isNotEmpty();
-        assertThat(summaries.get(0).totalEclAmount()).isNotNull();
+        assertThat(summaries.get(0).getTotalEclAmount()).isNotNull();
     }
 }

@@ -417,6 +417,18 @@ com.hi.locf.feature.locf
    └─ LocfQueryService
 ```
 
+### DTO / VO 설계 기준
+
+- Web/API 응답 객체는 nexcore 스타일 JavaBean POJO를 사용
+- 요청 DTO도 JavaBean POJO를 사용
+- `record`는 사용하지 않음
+- 이유:
+  - MyBatis resultMap 직접 매핑 호환성
+  - WebSquare / 공통 프레임워크 연계 일관성
+  - setter/getter 기반 디버깅 편의성
+
+즉 현재 프로젝트의 `dto`는 엄밀히 말하면 nexcore 계열의 `DTO/VO` 감각으로 이해하면 된다.
+
 ## 9. Mapper 역할 기준
 
 ### Mapper에서 처리할 것

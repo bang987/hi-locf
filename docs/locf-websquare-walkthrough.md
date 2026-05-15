@@ -25,6 +25,17 @@ WebSquare 입력/버튼
 - 배치 API: [LocfBatchController.java](D:\sts-5.1.1.RELEASE\workspace\hi-locf\src\main\java\com\hi\locf\feature\locf\controller\LocfBatchController.java)
 - 조회 API: [LocfQueryController.java](D:\sts-5.1.1.RELEASE\workspace\hi-locf\src\main\java\com\hi\locf\feature\locf\controller\LocfQueryController.java)
 
+## DTO / VO 기준
+현재 LOCF 응답 객체는 nexcore 스타일에 맞춰 JavaBean POJO로 구성한다.
+
+- `LocfBatchRunResponse`
+- `LocfBatchHistoryItemResponse`
+- `LocfBatchStepItemResponse`
+- `LocfContractResultResponse`
+- `LocfSummaryItemResponse`
+
+즉 백엔드는 `record`가 아니라 기본 생성자와 getter/setter를 가진 DTO/VO를 JSON으로 반환한다.
+
 ## 1. DataMap / DataList
 WebSquare는 먼저 화면에서 사용할 데이터 그릇을 정의한다.
 

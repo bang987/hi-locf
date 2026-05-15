@@ -44,6 +44,8 @@ WebSquare 입력/버튼
   - 계약별 Stage / EAD / PD / LGD / ECL 결과
 - `dlSummary`
   - 기준일자별 상품 / Stage 요약
+- `dlSegmentSummary`
+  - 기준일자별 고객유형 / 세그먼트 / Stage 요약
 
 즉 충당금 화면은 "배치 실행 이력 + 결과 목록" 중심이다.
 
@@ -85,6 +87,12 @@ WebSquare 입력/버튼
 호출 API:
 - `GET /hi-locf/api/v1/provision/results/summary?baseDate=...`
 
+### 세그먼트 요약 조회
+`sbmSegmentSummary`는 기준일자를 쿼리스트링으로 붙여 호출한다.
+
+호출 API:
+- `GET /hi-locf/api/v1/provision/results/segment-summary?baseDate=...`
+
 ## 3. Script
 Script는 WebSquare 입력 이벤트와 submission 호출을 연결한다.
 
@@ -106,6 +114,15 @@ scwin.runBatch = function() {
 
 ### 공통 응답 처리
 백엔드는 `ApiResponse { success, data, error, timestamp }` 형식으로 응답한다.
+
+현재 응답 DTO/VO는 nexcore 스타일 JavaBean POJO다.
+
+- `ProvisionBatchRunResponse`
+- `ProvisionBatchHistoryItemResponse`
+- `ProvisionBatchStepItemResponse`
+- `ProvisionContractResultRow`
+- `ProvisionSummaryItemResponse`
+- `ProvisionSegmentSummaryItemResponse`
 
 그래서 script에서는 `response.data`를 꺼내 DataList에 넣는다.
 
@@ -154,6 +171,12 @@ scwin.handleListResponse = function(responseText, dataListId) {
 - Controller: `ProvisionQueryController.getSummary()`
 - Service: `ProvisionQueryServiceImpl.getSummary()`
 - Mapper: `ProvisionQueryMapper.findSummaryByBaseDate()`
+
+### 세그먼트 요약 조회
+- API: `GET /hi-locf/api/v1/provision/results/segment-summary?baseDate=...`
+- Controller: `ProvisionQueryController.getSegmentSummary()`
+- Service: `ProvisionQueryServiceImpl.getSegmentSummary()`
+- Mapper: `ProvisionQueryMapper.findSegmentSummaryByBaseDate()`
 
 ## 5. 실무 학습 포인트
 

@@ -9,6 +9,10 @@
 - 어떤 부분이 프로시저이고 어떤 부분이 Java 계산인지
 - 조회 API / 화면(WebSquare, HTML)이 결과를 어떻게 읽는지
 
+문서 기준 DTO/VO 규칙:
+- Controller 응답 객체는 JavaBean POJO 형태의 DTO/VO를 사용한다.
+- `ApiResponse<T>` 내부의 `data`도 getter/setter를 가진 JavaBean 객체로 내려간다.
+
 ---
 
 ## 1. 전체 구조

@@ -70,11 +70,10 @@ public class ProvisionQueryServiceImpl implements ProvisionQueryService {
         }
         return responses;
     }
-    
-    
+
+    @Override
     @Transactional(readOnly = true)
     public List<ProvisionSegmentSummaryItemResponse> getSegmentSummary(LocalDate baseDate) {
         return provisionQueryMapper.findSegmentSummaryByBaseDate(baseDate);
     }
-
 }

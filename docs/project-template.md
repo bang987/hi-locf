@@ -21,7 +21,13 @@ hi-locf
 │  │  │     │  └─ exception/
 │  │  │     └─ feature/                 (패키지)
 │  │  │        ├─ health/controller/
-│  │  │        └─ locf/
+│  │  │        ├─ locf/
+│  │  │        │  ├─ controller/
+│  │  │        │  ├─ dto/
+│  │  │        │  ├─ entity/
+│  │  │        │  ├─ mapper/
+│  │  │        │  └─ service/
+│  │  │        └─ provision/
 │  │  │           ├─ controller/
 │  │  │           ├─ dto/
 │  │  │           ├─ entity/
@@ -40,12 +46,17 @@ hi-locf
 
 ## 2. 설계 기준
 
-- `feature` 하위로 업무 도메인을 모읍니다. 현재 기준 도메인은 `locf`.
+- `feature` 하위로 업무 도메인을 모읍니다. 현재 기준 도메인은 `locf`, `provision`.
 - `common` 에는 공통 응답, 에러 코드, 예외 처리를 둡니다.
 - `config` 에는 `@Configuration`, `@ConfigurationProperties`만 둡니다.
-- 현재 구조는 `Oracle 원천 테이블 -> MyBatis LOCF 배치 계산 -> 결과 저장 -> WebSquare 조회` 흐름에 초점을 둡니다.
+- 현재 구조는 `Oracle 원천 테이블 -> MyBatis LOCF/Provision 배치 계산 -> 결과 저장 -> WebSquare 조회` 흐름에 초점을 둡니다.
 - 실무형 LOCF 확장 설계는 `docs/locf-practical-design.md`를 기준 문서로 사용합니다.
 - 실제 개발 착수 기준 문서는 `docs/locf-implementation-blueprint.md`를 사용합니다.
+- DTO/VO는 nexcore 스타일에 맞춰 `record` 대신 JavaBean POJO 방식으로 유지합니다.
+  - 기본 생성자
+  - 전체 생성자
+  - getter/setter
+  - MyBatis 직접 매핑이 가능한 구조
 
 ## 3. WebSquare 연계 방식
 
@@ -55,7 +66,7 @@ hi-locf
 - WebSquare는 WAS 또는 정적 웹서버에서 별도 배포합니다.
 - Spring Boot는 `/hi-locf/api/v1/**` REST API만 제공합니다.
 - 프론트와 백엔드 사이 통신은 `JSON` 기준으로 맞춥니다.
-- 현재 기준 API는 LOCF 배치 실행과 계약 결과 조회입니다.
+- 현재 기준 API는 LOCF 배치 실행/조회와 Provision 배치 실행/조회입니다.
 
 ### 연계 흐름
 
