@@ -314,13 +314,13 @@ BEGIN
                (EXTRACT(YEAR FROM c.MATURITY_DATE) - EXTRACT(YEAR FROM c.EXECUTION_DATE)) * 12
                + (EXTRACT(MONTH FROM c.MATURITY_DATE) - EXTRACT(MONTH FROM c.EXECUTION_DATE))
            )
-      FROM LOAN_CONTRACT c
-      JOIN LOAN_RATE r
-        ON r.CONTRACT_ID = c.CONTRACT_ID
-      JOIN LOAN_BALANCE b
-        ON b.CONTRACT_ID = c.CONTRACT_ID
-     WHERE c.STATUS_CODE = 'ACTIVE'
-       AND b.BASE_DATE = p_base_date;
+        FROM LOAN_CONTRACT c,
+             LOAN_RATE r,
+             LOAN_BALANCE b
+       WHERE r.CONTRACT_ID = c.CONTRACT_ID
+         AND b.CONTRACT_ID = c.CONTRACT_ID
+         AND c.STATUS_CODE = 'ACTIVE'
+         AND b.BASE_DATE = p_base_date;
 END;
 /
 

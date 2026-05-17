@@ -14,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.hi.locf.feature.provision.dto.ProvisionBatchRunRequest;
 import com.hi.locf.feature.provision.dto.ProvisionBatchRunResponse;
 import com.hi.locf.feature.provision.dto.ProvisionContractResultRow;
+import com.hi.locf.feature.provision.dto.ProvisionIndividualEvalTargetRequest;
+import com.hi.locf.feature.provision.dto.ProvisionIndividualEvalTargetResponse;
 import com.hi.locf.feature.provision.dto.ProvisionSummaryItemResponse;
 
 @SpringBootTest
@@ -25,6 +27,9 @@ class ProvisionBatchServiceIntegrationTest {
 
     @Autowired
     private ProvisionQueryService provisionQueryService;
+
+    @Autowired
+    private ProvisionIndividualEvalTargetService provisionIndividualEvalTargetService;
 
     @Test
     void runProvisionBatchAndQueryResult() {
@@ -49,5 +54,37 @@ class ProvisionBatchServiceIntegrationTest {
         List<ProvisionSummaryItemResponse> summaries = provisionQueryService.getSummary(LocalDate.of(2026, 1, 10));
         assertThat(summaries).isNotEmpty();
         assertThat(summaries.get(0).getTotalEclAmount()).isNotNull();
+    }
+
+    @Test
+    void createGetAndDeleteIndividualEvalTarget() {
+        ProvisionIndividualEvalTargetRequest request = new ProvisionIndividualEvalTargetRequest();
+        request.setBaseDate(LocalDate.of(2026, 1, 10));
+        request.setContractNo("LN-2026-000001");
+        request.setEvalReasonCode("DEFAULT");
+        request.setEvalReasonDetail("통합테스트 개별평가 대상");
+        request.setRecoveryExpectedAmt(new BigDecimal("5000000.00"));
+        request.setDiscountRate(new BigDecimal("0.0450"));
+        request.setActiveYn("Y");
+
+        ProvisionIndividualEvalTargetResponse created = provisionIndividualEvalTargetService.createTarget(request);
+
+        assertThat(created.getIndividualTargetId()).isNotNull();
+        assertThat(created.getContractNo()).isEqualTo("LN-2026-000001");
+        assertThat(created.getCustomerName()).isNotBlank();
+        assertThat(created.getProductCode()).isNotBlank();
+
+        List<ProvisionIndividualEvalTargetResponse> targets =
+                provisionIndividualEvalTargetService.getTargets(LocalDate.of(2026, 1, 10), "LN-2026-000001");
+
+        assertThat(targets).hasSize(1);
+        assertThat(targets.get(0).getEvalReasonCode()).isEqualTo("DEFAULT");
+
+        provisionIndividualEvalTargetService.deleteTarget(created.getIndividualTargetId());
+
+        List<ProvisionIndividualEvalTargetResponse> deletedTargets =
+                provisionIndividualEvalTargetService.getTargets(LocalDate.of(2026, 1, 10), "LN-2026-000001");
+
+        assertThat(deletedTargets).isEmpty();
     }
 }

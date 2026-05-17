@@ -9,6 +9,7 @@ import org.apache.ibatis.annotations.Param;
 import com.hi.locf.feature.provision.entity.ProvisionBatchExecution;
 import com.hi.locf.feature.provision.entity.ProvisionBatchStepExecution;
 
+
 @Mapper
 public interface ProvisionBatchControlMapper {
 
@@ -29,4 +30,6 @@ public interface ProvisionBatchControlMapper {
     List<ProvisionBatchStepExecution> findStepHistoryByBatchRunNo(@Param("batchRunNo") String batchRunNo);
 
     void clearBatchData(@Param("batchExecutionId") Long batchExecutionId);
+    
+
 }

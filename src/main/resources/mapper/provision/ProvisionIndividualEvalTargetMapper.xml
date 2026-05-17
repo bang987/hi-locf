@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hi.locf.feature.provision.mapper.ProvisionIndividualEvalTargetMapper">
+
+    <resultMap id="provisionIndividualEvalTargetResultMap"
+               type="com.hi.locf.feature.provision.entity.ProvisionIndividualEvalTarget">
+        <id property="individualTargetId" column="INDIVIDUAL_TARGET_ID"/>
+        <result property="baseDate" column="BASE_DATE"/>
+        <result property="contractId" column="CONTRACT_ID"/>
+        <result property="contractNo" column="CONTRACT_NO"/>
+        <result property="customerName" column="CUSTOMER_NAME"/>
+        <result property="productCode" column="PRODUCT_CODE"/>
+        <result property="evalReasonCode" column="EVAL_REASON_CODE"/>
+        <result property="evalReasonDetail" column="EVAL_REASON_DETAIL"/>
+        <result property="recoveryExpectedAmt" column="RECOVERY_EXPECTED_AMT"/>
+        <result property="discountRate" column="DISCOUNT_RATE"/>
+        <result property="activeYn" column="ACTIVE_YN"/>
+        <result property="createdAt" column="CREATED_AT"/>
+        <result property="updatedAt" column="UPDATED_AT"/>
+    </resultMap>
+
+    <insert id="insertTarget" parameterType="com.hi.locf.feature.provision.entity.ProvisionIndividualEvalTarget">
+        <selectKey keyProperty="individualTargetId" resultType="long" order="BEFORE">
+            SELECT SQ_PRV_INDIVIDUAL_EVAL_TARGET.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO PRV_INDIVIDUAL_EVAL_TARGET (
+            INDIVIDUAL_TARGET_ID, BASE_DATE, CONTRACT_ID, CONTRACT_NO, EVAL_REASON_CODE,
+            EVAL_REASON_DETAIL, RECOVERY_EXPECTED_AMT, DISCOUNT_RATE, ACTIVE_YN, CREATED_AT, UPDATED_AT
+        ) VALUES (
+            #{individualTargetId}, #{baseDate}, #{contractId}, #{contractNo}, #{evalReasonCode},
+            #{evalReasonDetail}, #{recoveryExpectedAmt}, #{discountRate}, #{activeYn}, #{createdAt}, #{updatedAt}
+        )
+    </insert>
+
+    <select id="findTargets" resultMap="provisionIndividualEvalTargetResultMap">
+        SELECT X.INDIVIDUAL_TARGET_ID,
+               X.BASE_DATE,
+               X.CONTRACT_ID,
+               X.CONTRACT_NO,
+               X.EVAL_REASON_CODE,
+               X.EVAL_REASON_DETAIL,
+               X.RECOVERY_EXPECTED_AMT,
+               X.DISCOUNT_RATE,
+               X.ACTIVE_YN,
+               X.CREATED_AT,
+               X.UPDATED_AT,
+               C.CUSTOMER_NAME,
+               L.PRODUCT_CODE
+          FROM PRV_INDIVIDUAL_EVAL_TARGET X,
+               LOAN_CONTRACT L,
+               CUSTOMER_MASTER C
+         WHERE X.CONTRACT_ID = L.CONTRACT_ID
+           AND L.CUSTOMER_ID = C.CUSTOMER_ID
+           AND X.BASE_DATE = #{baseDate}
+        <if test="contractNo != null and contractNo != ''">
+           AND X.CONTRACT_NO = #{contractNo}
+        </if>
+         ORDER BY X.INDIVIDUAL_TARGET_ID DESC
+    </select>
+
+    <select id="findTargetById" resultMap="provisionIndividualEvalTargetResultMap">
+        SELECT INDIVIDUAL_TARGET_ID,
+               BASE_DATE,
+               CONTRACT_ID,
+               CONTRACT_NO,
+               EVAL_REASON_CODE,
+               EVAL_REASON_DETAIL,
+               RECOVERY_EXPECTED_AMT,
+               DISCOUNT_RATE,
+               ACTIVE_YN,
+               CREATED_AT,
+               UPDATED_AT
+          FROM PRV_INDIVIDUAL_EVAL_TARGET
+         WHERE INDIVIDUAL_TARGET_ID = #{individualTargetId}
+    </select>
+
+    <select id="findDuplicateTarget" resultMap="provisionIndividualEvalTargetResultMap">
+        SELECT INDIVIDUAL_TARGET_ID,
+               BASE_DATE,
+               CONTRACT_ID,
+               CONTRACT_NO,
+               EVAL_REASON_CODE,
+               EVAL_REASON_DETAIL,
+               RECOVERY_EXPECTED_AMT,
+               DISCOUNT_RATE,
+               ACTIVE_YN,
+               CREATED_AT,
+               UPDATED_AT
+          FROM PRV_INDIVIDUAL_EVAL_TARGET
+         WHERE BASE_DATE = #{baseDate}
+           AND CONTRACT_ID = #{contractId}
+           AND ACTIVE_YN = 'Y'
+    </select>
+
+    <delete id="deleteTargetById">
+        DELETE FROM PRV_INDIVIDUAL_EVAL_TARGET
+         WHERE INDIVIDUAL_TARGET_ID = #{individualTargetId}
+    </delete>
+
+</mapper>

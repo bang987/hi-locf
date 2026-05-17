@@ -41,6 +41,11 @@
             #{targetCount}, #{processedCount}, #{errorCount}, #{startedAt}, #{finishedAt}, #{errorMessage}
         )
     </insert>
+    
+    
+   
+    
+    
 
     <update id="completeBatchExecution" parameterType="com.hi.locf.feature.provision.entity.ProvisionBatchExecution">
         UPDATE PRV_BATCH_EXECUTION
@@ -102,10 +107,10 @@
 
     <select id="findStepHistoryByBatchRunNo" resultMap="provisionBatchStepExecutionResultMap">
         SELECT s.*
-          FROM PRV_BATCH_STEP_EXECUTION s
-          JOIN PRV_BATCH_EXECUTION b
-            ON b.BATCH_EXECUTION_ID = s.BATCH_EXECUTION_ID
-         WHERE b.BATCH_RUN_NO = #{batchRunNo}
+          FROM PRV_BATCH_STEP_EXECUTION s,
+               PRV_BATCH_EXECUTION b
+         WHERE b.BATCH_EXECUTION_ID = s.BATCH_EXECUTION_ID
+           AND b.BATCH_RUN_NO = #{batchRunNo}
          ORDER BY s.STEP_EXECUTION_ID ASC
     </select>
 

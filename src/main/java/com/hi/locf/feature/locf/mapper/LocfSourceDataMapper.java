@@ -35,5 +35,7 @@ public interface LocfSourceDataMapper {
 
     int insertCollateral(LoanCollateralSource collateral);
 
+    LoanContractSource findLoanContractByContractNo(@Param("contractNo") String contractNo);
+
     List<LoanRepaymentScheduleSource> findRepaymentSchedulesByContractId(@Param("contractId") Long contractId);
 }

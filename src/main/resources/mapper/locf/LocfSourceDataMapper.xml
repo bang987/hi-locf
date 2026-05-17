@@ -4,6 +4,24 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.hi.locf.feature.locf.mapper.LocfSourceDataMapper">
 
+    <resultMap id="loanContractSourceResultMap" type="com.hi.locf.feature.locf.entity.LoanContractSource">
+        <id property="contractId" column="CONTRACT_ID"/>
+        <result property="contractNo" column="CONTRACT_NO"/>
+        <result property="customerId" column="CUSTOMER_ID"/>
+        <result property="productCode" column="PRODUCT_CODE"/>
+        <result property="loanTypeCode" column="LOAN_TYPE_CODE"/>
+        <result property="repaymentType" column="REPAYMENT_TYPE"/>
+        <result property="customerName" column="CUSTOMER_NAME"/>
+        <result property="executionDate" column="EXECUTION_DATE"/>
+        <result property="maturityDate" column="MATURITY_DATE"/>
+        <result property="principalAmt" column="PRINCIPAL_AMT"/>
+        <result property="feeAmt" column="FEE_AMT"/>
+        <result property="directCostAmt" column="DIRECT_COST_AMT"/>
+        <result property="statusCode" column="STATUS_CODE"/>
+        <result property="createdAt" column="CREATED_AT"/>
+        <result property="updatedAt" column="UPDATED_AT"/>
+    </resultMap>
+
     <resultMap id="loanRepaymentScheduleResultMap" type="com.hi.locf.feature.locf.entity.LoanRepaymentScheduleSource">
         <id property="scheduleId" column="SCHEDULE_ID"/>
         <result property="contractId" column="CONTRACT_ID"/>
@@ -114,6 +132,28 @@
             #{collateralId}, #{contractId}, #{baseDate}, #{collateralType}, #{collateralValueAmt}, #{recoveryRate}, #{createdAt}, #{updatedAt}
         )
     </insert>
+
+    <select id="findLoanContractByContractNo" resultMap="loanContractSourceResultMap">
+        SELECT c.CONTRACT_ID,
+               c.CONTRACT_NO,
+               c.CUSTOMER_ID,
+               c.PRODUCT_CODE,
+               c.LOAN_TYPE_CODE,
+               c.REPAYMENT_TYPE,
+               cm.CUSTOMER_NAME,
+               c.EXECUTION_DATE,
+               c.MATURITY_DATE,
+               c.PRINCIPAL_AMT,
+               c.FEE_AMT,
+               c.DIRECT_COST_AMT,
+               c.STATUS_CODE,
+               c.CREATED_AT,
+               c.UPDATED_AT
+          FROM LOAN_CONTRACT c,
+               CUSTOMER_MASTER cm
+         WHERE cm.CUSTOMER_ID(+) = c.CUSTOMER_ID
+           AND c.CONTRACT_NO = #{contractNo}
+    </select>
 
     <select id="findRepaymentSchedulesByContractId" resultMap="loanRepaymentScheduleResultMap">
         SELECT SCHEDULE_ID, CONTRACT_ID, INSTALLMENT_NO, PAYMENT_DATE, SCHEDULED_PAYMENT_AMT,

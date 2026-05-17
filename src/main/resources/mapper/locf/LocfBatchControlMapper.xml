@@ -142,10 +142,10 @@
                s.FINISHED_AT,
                s.PROCESSED_COUNT,
                s.ERROR_MESSAGE
-          FROM LOCF_BATCH_STEP_EXECUTION s
-          JOIN LOCF_BATCH_EXECUTION b
-            ON b.BATCH_EXECUTION_ID = s.BATCH_EXECUTION_ID
-         WHERE b.BATCH_RUN_NO = #{batchRunNo}
+          FROM LOCF_BATCH_STEP_EXECUTION s,
+               LOCF_BATCH_EXECUTION b
+         WHERE b.BATCH_EXECUTION_ID = s.BATCH_EXECUTION_ID
+           AND b.BATCH_RUN_NO = #{batchRunNo}
          ORDER BY s.STEP_EXECUTION_ID ASC
     </select>
 </mapper>

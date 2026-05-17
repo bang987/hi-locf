@@ -41,7 +41,7 @@
         }
         .wide { grid-column: span 12; }
         .half { grid-column: span 6; }
-        .third { grid-column: span 4; }
+        .third { grid-column: span 3; }
         h1, h2 { margin: 0 0 12px; }
         h1 { font-size: 28px; }
         h2 { font-size: 18px; }
@@ -53,14 +53,14 @@
             align-items: center;
             margin-bottom: 12px;
         }
-        input, button {
+        input, select, button {
             height: 40px;
             border-radius: 10px;
             border: 1px solid var(--line);
             padding: 0 12px;
             font-size: 14px;
         }
-        input { background: white; min-width: 180px; }
+        input, select { background: white; min-width: 180px; }
         button {
             background: var(--accent);
             color: white;
@@ -98,8 +98,59 @@
             border-radius: 12px;
             padding: 12px;
         }
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .info-item {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 10px 12px;
+        }
+        .info-label {
+            display: block;
+            margin-bottom: 6px;
+            color: #5f726b;
+            font-size: 12px;
+        }
+        .info-value {
+            display: block;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--ink);
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+            margin-top: 14px;
+        }
+        .form-field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .form-field label {
+            color: #5f726b;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .form-field input {
+            width: 100%;
+            min-width: 0;
+        }
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 12px;
+        }
         @media (max-width: 960px) {
             .half, .third { grid-column: span 12; }
+            .info-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .form-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
         }
     </style>
 </head>
@@ -163,7 +214,48 @@
             </div>
             <div id="stepHistoryTable"></div>
         </section>
-
+		<section class="card wide">
+            <h2>개별평가 대상 관리</h2>
+            <div class ="row">
+            	<input id="ieBaseDate" type="date" value="2026-01-10">
+            	<input id="ieContractNo" type="text" value="LN-2026-000001">
+                <button class="secondary" onclick="loadIndividualEvalContract()">계약 조회</button>
+            </div>
+            <pre id="individualEvalContractResult">계약 조회 전입니다.</pre>
+            <div id="individualEvalContractInfo" class="info-grid"></div>
+            <div class="form-grid">
+                <div class="form-field">
+                    <label for="evalReasonCode">평가사유코드</label>
+                    <select id="evalReasonCode">
+                        <option value="">선택</option>
+                        <option value="DEFAULT">DEFAULT - 부도위험차주</option>
+                        <option value="DELINQ">DELINQ - 연체심화</option>
+                        <option value="RESTRUCT">RESTRUCT - 채무재조정</option>
+                        <option value="MANUAL">MANUAL - 수동판정</option>
+                        <option value="WATCH">WATCH - 요주의관찰</option>
+                    </select>
+                </div>
+                <div class="form-field">
+                    <label for="evalReasonDetail">평가사유상세</label>
+                    <input id="evalReasonDetail" type="text" placeholder="예: 수동 개별평가 대상">
+                </div>
+                <div class="form-field">
+                    <label for="recoveryExpectedAmt">예상회수금액</label>
+                    <input id="recoveryExpectedAmt" type="number" placeholder="예: 5000000">
+                </div>
+                <div class="form-field">
+                    <label for="discountRate">할인율</label>
+                    <input id="discountRate" type="number" step="0.0001" placeholder="예: 0.0450">
+                </div>
+            </div>
+            <div class="form-actions">
+                <button onclick="registerIndividualEvalTarget()">등록</button>
+            </div>
+            <div style="margin-top:16px;">
+                <h2 style="font-size:16px;">개별평가 대상 목록</h2>
+                <div id="individualEvalTargetTable"></div>
+            </div>
+        </section>
         <section class="card wide">
             <h2>계약별 충당금 결과</h2>
             <div id="contractResultTable"></div>
@@ -208,6 +300,37 @@
             }).join("");
             return `<tr>${cells}</tr>`;
         }).join("");
+
+        target.innerHTML = `<table><thead><tr>${header}</tr></thead><tbody>${body}</tbody></table>`;
+    }
+
+    function renderIndividualEvalTargetTable(rows) {
+        const target = document.getElementById("individualEvalTargetTable");
+        if (!rows || rows.length === 0) {
+            target.innerHTML = "<div class='muted'>등록된 개별평가 대상이 없습니다.</div>";
+            return;
+        }
+
+        const header = [
+            "대상ID", "기준일자", "계약번호", "고객명", "상품코드",
+            "평가사유코드", "평가사유상세", "예상회수금액", "할인율", "사용여부", "삭제"
+        ].map(label => `<th>${label}</th>`).join("");
+
+        const body = rows.map(row => `
+            <tr>
+                <td>${textCell(row.individualTargetId)}</td>
+                <td>${textCell(row.baseDate)}</td>
+                <td>${textCell(row.contractNo)}</td>
+                <td>${textCell(row.customerName)}</td>
+                <td>${textCell(row.productCode)}</td>
+                <td>${textCell(row.evalReasonCode)}</td>
+                <td>${textCell(row.evalReasonDetail)}</td>
+                <td>${money(row.recoveryExpectedAmt)}</td>
+                <td>${textCell(row.discountRate)}</td>
+                <td>${textCell(row.activeYn)}</td>
+                <td><button class="secondary" onclick="deleteIndividualEvalTarget(${row.individualTargetId})">삭제</button></td>
+            </tr>
+        `).join("");
 
         target.innerHTML = `<table><thead><tr>${header}</tr></thead><tbody>${body}</tbody></table>`;
     }
@@ -326,27 +449,145 @@
     }
 
     async function loadSegmentSummary() {
-    try {
-        const baseDate = document.getElementById("segmentSummaryDate").value;
-        const data = await fetchJson(`${apiBase}/results/segment-summary?baseDate=${baseDate}`);
+        try {
+            const baseDate = document.getElementById("segmentSummaryDate").value;
+            const data = await fetchJson(`${apiBase}/results/segment-summary?baseDate=${baseDate}`);
 
-        document.getElementById("segmentSummaryResult").textContent = JSON.stringify(data, null, 2);
+            document.getElementById("segmentSummaryResult").textContent = JSON.stringify(data, null, 2);
 
-        renderTable("segmentSummaryTable", [
-            { key: "baseDate", label: "기준일자" },
-            { key: "customerType", label: "고객유형" },
-            { key: "segmentCode", label: "세그먼트코드" },
-            { key: "stageCode", label: "Stage" },
-            { key: "contractCount", label: "계약건수" },
-            { key: "totalCarryingAmount", label: "장부가합계", format: money },
-            { key: "totalEadAmount", label: "EAD합계", format: money },
-            { key: "totalEclAmount", label: "ECL합계", format: money }
-        ], data);
-    } catch (error) {
-        document.getElementById("segmentSummaryResult").textContent = error.message;
-        document.getElementById("segmentSummaryTable").innerHTML = "";
+            renderTable("segmentSummaryTable", [
+                { key: "baseDate", label: "기준일자" },
+                { key: "customerType", label: "고객유형" },
+                { key: "segmentCode", label: "세그먼트코드" },
+                { key: "stageCode", label: "Stage" },
+                { key: "contractCount", label: "계약건수" },
+                { key: "totalCarryingAmount", label: "장부가합계", format: money },
+                { key: "totalEadAmount", label: "EAD합계", format: money },
+                { key: "totalEclAmount", label: "ECL합계", format: money }
+            ], data);
+        } catch (error) {
+            document.getElementById("segmentSummaryResult").textContent = error.message;
+            document.getElementById("segmentSummaryTable").innerHTML = "";
+        }
     }
-}
+
+    async function loadIndividualEvalContract() {
+        try {
+            const baseDate = document.getElementById("ieBaseDate").value;
+            const contractNo = document.getElementById("ieContractNo").value.trim();
+            if (!contractNo) {
+                throw new Error("계약번호를 입력해 주세요.");
+            }
+
+            const data = await fetchJson(`${apiBase}/contracts/${encodeURIComponent(contractNo)}`);
+            const contract = Array.isArray(data) && data.length > 0 ? data[0] : null;
+
+            if (!contract) {
+                throw new Error(`계약번호 ${contractNo}에 대한 충당금 결과가 없습니다.`);
+            }
+
+            document.getElementById("individualEvalContractResult").textContent =
+                `기준일자 ${baseDate} 기준으로 ${contractNo} 계약의 참고정보를 조회했습니다.`;
+
+            const fields = [
+                { label: "기준일자", value: baseDate },
+                { label: "계약번호", value: contract.contractNo },
+                { label: "고객명", value: contract.customerName },
+                { label: "상품코드", value: contract.productCode },
+                { label: "Stage", value: contract.stageCode },
+                { label: "Stage 사유", value: contract.stageReason },
+                { label: "장부가", value: money(contract.carryingAmount) },
+                { label: "EAD", value: money(contract.eadAmount) },
+                { label: "1년 PD", value: money(contract.oneYearPdRate) },
+                { label: "Lifetime PD", value: money(contract.lifetimePdRate) },
+                { label: "LGD", value: money(contract.lgdRate) },
+                { label: "ECL", value: money(contract.eclAmount) }
+            ];
+
+            const markup = fields.map(field => `
+                <div class="info-item">
+                    <span class="info-label">${field.label}</span>
+                    <span class="info-value">${textCell(field.value)}</span>
+                </div>
+            `).join("");
+
+            document.getElementById("individualEvalContractInfo").innerHTML = markup;
+            await loadIndividualEvalTargets();
+        } catch (error) {
+            document.getElementById("individualEvalContractResult").textContent = error.message;
+            document.getElementById("individualEvalContractInfo").innerHTML = "";
+        }
+    }
+
+    async function registerIndividualEvalTarget() {
+        const baseDate = document.getElementById("ieBaseDate").value;
+        const contractNo = document.getElementById("ieContractNo").value.trim();
+        const evalReasonCode = document.getElementById("evalReasonCode").value.trim();
+        const evalReasonDetail = document.getElementById("evalReasonDetail").value.trim();
+        const recoveryExpectedAmt = document.getElementById("recoveryExpectedAmt").value.trim();
+        const discountRate = document.getElementById("discountRate").value.trim();
+
+        if (!contractNo) {
+            document.getElementById("individualEvalContractResult").textContent = "계약번호를 먼저 조회해 주세요.";
+            return;
+        }
+        if (!evalReasonCode) {
+            document.getElementById("individualEvalContractResult").textContent = "평가사유코드를 선택해 주세요.";
+            return;
+        }
+
+        try {
+            const data = await fetchJson(`${apiBase}/individual-targets`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    baseDate,
+                    contractNo,
+                    evalReasonCode,
+                    evalReasonDetail,
+                    recoveryExpectedAmt: recoveryExpectedAmt || null,
+                    discountRate: discountRate || null,
+                    activeYn: "Y"
+                })
+            });
+
+            document.getElementById("individualEvalContractResult").textContent =
+                `개별평가 대상이 등록되었습니다. targetId=${data.individualTargetId}`;
+            await loadIndividualEvalTargets();
+        } catch (error) {
+            document.getElementById("individualEvalContractResult").textContent = error.message;
+        }
+    }
+
+    async function loadIndividualEvalTargets() {
+        try {
+            const baseDate = document.getElementById("ieBaseDate").value;
+            const contractNo = document.getElementById("ieContractNo").value.trim();
+            let url = `${apiBase}/individual-targets?baseDate=${encodeURIComponent(baseDate)}`;
+            if (contractNo) {
+                url += `&contractNo=${encodeURIComponent(contractNo)}`;
+            }
+
+            const data = await fetchJson(url);
+            renderIndividualEvalTargetTable(data);
+        } catch (error) {
+            document.getElementById("individualEvalTargetTable").innerHTML = `<div class='muted'>${error.message}</div>`;
+        }
+    }
+
+    async function deleteIndividualEvalTarget(individualTargetId) {
+        try {
+            await fetchJson(`${apiBase}/individual-targets/${individualTargetId}`, {
+                method: "DELETE"
+            });
+
+            document.getElementById("individualEvalContractResult").textContent =
+                `개별평가 대상이 삭제되었습니다. targetId=${individualTargetId}`;
+            await loadIndividualEvalTargets();
+        } catch (error) {
+            document.getElementById("individualEvalContractResult").textContent = error.message;
+        }
+    }
 
 </script>
 </body>
