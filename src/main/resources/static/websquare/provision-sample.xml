@@ -11,19 +11,28 @@
         2. 배치 이력 / step 이력 조회
         3. 계약별 Stage / EAD / PD / LGD / ECL 결과 조회
         4. 기준일자별 상품 / Stage 요약 조회
+        
+        scwin :현재 화면 함수 모음
+		$p:현재 페이지 객체, 컴포넌트/데이터셋/API 찾는 출발점
+			.getComponentById("...") :화면 컴포넌트 찾기
+			.getSubmission("...") :API 호출 객체 찾기
+			.getDataCollection("...") : DataMap / DataList 찾기
     -->
 
     <w2:head>
         <w2:type>PAGE</w2:type>
         <w2:model>
             <w2:dataCollection>
+                <!-- 배치 실행 요청값을 담는 DataMap -->
                 <w2:dataMap id="dmBatchRunRequest" baseNode="map">
                     <w2:key id="baseDate" dataType="text" value="2026-01-10"/>
                     <w2:key id="batchType" dataType="text" value="MANUAL"/>
                 </w2:dataMap>
 
+                <!-- 배치 실행 결과 1건을 담는 DataMap -->
                 <w2:dataMap id="dmBatchRunResult" baseNode="map"/>
 
+                <!-- 개별평가 대상 등록 요청값을 담는 DataMap -->
                 <w2:dataMap id="dmIndividualEvalTargetRequest" baseNode="map">
                     <w2:key id="baseDate" dataType="text" value="2026-01-10"/>
                     <w2:key id="contractNo" dataType="text" value="LN-2026-000001"/>
@@ -34,6 +43,7 @@
                     <w2:key id="activeYn" dataType="text" value="Y"/>
                 </w2:dataMap>
 
+                <!-- 배치 실행 이력 목록 -->
                 <w2:dataList id="dlBatchHistory" repeatNode="row">
                     <w2:columnInfo>
                         <w2:column id="batchRunNo" dataType="text"/>
@@ -46,6 +56,7 @@
                     </w2:columnInfo>
                 </w2:dataList>
 
+                <!-- 배치 Step 실행 이력 목록 -->
                 <w2:dataList id="dlStepHistory" repeatNode="row">
                     <w2:columnInfo>
                         <w2:column id="stepName" dataType="text"/>
@@ -56,6 +67,7 @@
                     </w2:columnInfo>
                 </w2:dataList>
 
+                <!-- 계약별 충당금 결과 목록 -->
                 <w2:dataList id="dlContractResults" repeatNode="row">
                     <w2:columnInfo>
                         <w2:column id="contractNo" dataType="text"/>
@@ -73,6 +85,7 @@
                     </w2:columnInfo>
                 </w2:dataList>
 
+                <!-- 상품코드 / Stage 기준 요약 목록 -->
                 <w2:dataList id="dlSummary" repeatNode="row">
                     <w2:columnInfo>
                         <w2:column id="baseDate" dataType="text"/>
@@ -85,6 +98,7 @@
                     </w2:columnInfo>
                 </w2:dataList>
 
+                <!-- 고객유형 / 세그먼트 / Stage 기준 요약 목록 -->
                 <w2:dataList id="dlSegmentSummary" repeatNode="row">
                     <w2:columnInfo>
                         <w2:column id="baseDate" dataType="text"/>
@@ -98,6 +112,7 @@
                     </w2:columnInfo>
                 </w2:dataList>
 
+                <!-- 개별평가 등록 전 참고용 계약 조회 결과 -->
                 <w2:dataList id="dlIndividualEvalContract" repeatNode="row">
                     <w2:columnInfo>
                         <w2:column id="contractNo" dataType="text"/>
@@ -115,6 +130,7 @@
                     </w2:columnInfo>
                 </w2:dataList>
 
+                <!-- 등록된 개별평가 대상 목록 -->
                 <w2:dataList id="dlIndividualEvalTargets" repeatNode="row">
                     <w2:columnInfo>
                         <w2:column id="individualTargetId" dataType="number"/>
@@ -134,63 +150,77 @@
                 </w2:dataList>
             </w2:dataCollection>
 
+            <!-- 충당금 배치 실행 -->
             <xf:submission id="sbmRunBatch"
                            ref="data:dmBatchRunRequest"
                            action="http://localhost:8080/hi-locf/api/v1/provision/batches/run"
                            method="post"
                            mediatype="application/json"/>
 
+            <!-- 배치 이력 조회 -->
             <xf:submission id="sbmBatchHistory"
                             method="get"
                             mediatype="application/json"/>
 
+            <!-- Step 이력 조회 -->
             <xf:submission id="sbmStepHistory"
                            method="get"
                            mediatype="application/json"/>
 
+            <!-- 계약별 충당금 결과 조회 -->
             <xf:submission id="sbmContractResult"
                            method="get"
                            mediatype="application/json"/>
 
+            <!-- 기준일자별 상품 / Stage 요약 조회 -->
             <xf:submission id="sbmSummary"
                            method="get"
                            mediatype="application/json"/>
 
+            <!-- 기준일자별 세그먼트 요약 조회 -->
             <xf:submission id="sbmSegmentSummary"
                            method="get"
                            mediatype="application/json"/>
 
+            <!-- 개별평가 등록 전 참고 계약정보 조회 -->
             <xf:submission id="sbmIndividualEvalContract"
                            method="get"
                            mediatype="application/json"/>
 
+            <!-- 등록된 개별평가 대상 목록 조회 -->
             <xf:submission id="sbmIndividualEvalTargets"
                            method="get"
                            mediatype="application/json"/>
 
+            <!-- 개별평가 대상 등록 -->
             <xf:submission id="sbmCreateIndividualEvalTarget"
                            ref="data:dmIndividualEvalTargetRequest"
                            method="post"
                            mediatype="application/json"/>
 
+            <!-- 개별평가 대상 삭제 -->
             <xf:submission id="sbmDeleteIndividualEvalTarget"
                            method="delete"
                            mediatype="application/json"/>
         </w2:model>
 
         <w2:script lazy="false"><![CDATA[
+            // 화면 최초 진입 시 배치 이력을 먼저 조회해서 학습 흐름을 시작한다.
             function scwin.onload() {
                 scwin.loadBatchHistory();
             }
 
+            // 기준일자 / 배치유형을 DataMap에 담아 충당금 배치를 실행한다.
             scwin.runBatch = function() {
                 var baseDate = $p.getComponentById("iptBaseDate").getValue();
                 var request = $p.getDataCollection("dmBatchRunRequest");
                 request.set("baseDate", baseDate);
                 request.set("batchType", "MANUAL");
                 $p.getSubmission("sbmRunBatch").send();
+                
             };
 
+            // 기준일자 조건으로 배치 실행 이력을 조회한다.
             scwin.loadBatchHistory = function() {
                 var baseDate = $p.getComponentById("iptHistoryDate").getValue();
                 var action = "http://localhost:8080/hi-locf/api/v1/provision/batches";
@@ -201,6 +231,7 @@
                 $p.getSubmission("sbmBatchHistory").send();
             };
 
+            // 배치실행번호 기준으로 Step 이력을 조회한다.
             scwin.loadStepHistory = function() {
                 var batchRunNo = $p.getComponentById("iptBatchRunNo").getValue();
                 if (!batchRunNo) {
@@ -213,6 +244,7 @@
                 $p.getSubmission("sbmStepHistory").send();
             };
 
+            // 계약번호 기준으로 충당금 계산 결과를 조회한다.
             scwin.loadContractResult = function() {
                 var contractNo = $p.getComponentById("iptContractNo").getValue();
                 if (!contractNo) {
@@ -225,6 +257,7 @@
                 $p.getSubmission("sbmContractResult").send();
             };
 
+            // 기준일자 기준 상품 / Stage 요약을 조회한다.
             scwin.loadSummary = function() {
                 var baseDate = $p.getComponentById("iptSummaryDate").getValue();
                 if (!baseDate) {
@@ -237,6 +270,7 @@
                 $p.getSubmission("sbmSummary").send();
             };
 
+            // 기준일자 기준 세그먼트 요약을 조회한다.
             scwin.loadSegmentSummary = function() {
                 var baseDate = $p.getComponentById("iptSegmentSummaryDate").getValue();
                 if (!baseDate) {
@@ -249,6 +283,7 @@
                 $p.getSubmission("sbmSegmentSummary").send();
             };
 
+            // 개별평가 등록 전 참고 계약정보를 먼저 조회한다.
             scwin.loadIndividualEvalContract = function() {
                 var baseDate = $p.getComponentById("iptIeBaseDate").getValue();
                 var contractNo = $p.getComponentById("iptIeContractNo").getValue();
@@ -265,6 +300,7 @@
                 );
             };
 
+            // 입력한 평가사유 / 예상회수금액 / 할인율을 API로 전달해 개별평가 대상을 등록한다.
             scwin.registerIndividualEvalTarget = function() {
                 var baseDate = $p.getComponentById("iptIeBaseDate").getValue();
                 var contractNo = $p.getComponentById("iptIeContractNo").getValue();
@@ -297,6 +333,7 @@
                 $p.getSubmission("sbmCreateIndividualEvalTarget").send();
             };
 
+            // 기준일자와 선택적 계약번호 조건으로 개별평가 대상 목록을 조회한다.
             scwin.loadIndividualEvalTargets = function() {
                 var baseDate = $p.getComponentById("iptIeBaseDate").getValue();
                 var contractNo = $p.getComponentById("iptIeContractNo").getValue();
@@ -314,6 +351,7 @@
                 $p.getSubmission("sbmIndividualEvalTargets").send();
             };
 
+            // 그리드에서 선택한 개별평가 대상 1건을 삭제한다.
             scwin.deleteIndividualEvalTarget = function() {
                 var selectedIndex = $p.getComponentById("grdIndividualEvalTargets").getFocusedIndex();
                 if (selectedIndex < 0) {
@@ -330,6 +368,7 @@
                 $p.getSubmission("sbmDeleteIndividualEvalTarget").send();
             };
 
+            // 목록 형태 응답은 success / data 구조를 풀어 DataList에 넣는 공통 처리 함수다.
             scwin.handleListResponse = function(responseText, dataListId) {
                 var response = JSON.parse(responseText);
                 if (!response.success) {
@@ -339,6 +378,7 @@
                 $p.getDataCollection(dataListId).setJSON(response.data);
             };
 
+            // 배치 실행 성공 후에는 배치결과 / 이력 / 요약을 연쇄 조회한다.
             scwin.handleBatchRunResponse = function(responseText) {
                 var response = JSON.parse(responseText);
                 if (!response.success) {
@@ -358,30 +398,37 @@
                 scwin.loadContractResult();
             };
 
+            // 배치 실행 응답 처리
             function sbmRunBatch_submitdone(e) {
                 scwin.handleBatchRunResponse(e.responseBody);
             }
 
+            // 배치 이력 응답 처리
             function sbmBatchHistory_submitdone(e) {
                 scwin.handleListResponse(e.responseBody, "dlBatchHistory");
             }
 
+            // Step 이력 응답 처리
             function sbmStepHistory_submitdone(e) {
                 scwin.handleListResponse(e.responseBody, "dlStepHistory");
             }
 
+            // 계약별 결과 응답 처리
             function sbmContractResult_submitdone(e) {
                 scwin.handleListResponse(e.responseBody, "dlContractResults");
             }
 
+            // 상품 / Stage 요약 응답 처리
             function sbmSummary_submitdone(e) {
                 scwin.handleListResponse(e.responseBody, "dlSummary");
             }
 
+            // 세그먼트 요약 응답 처리
             function sbmSegmentSummary_submitdone(e) {
                 scwin.handleListResponse(e.responseBody, "dlSegmentSummary");
             }
 
+            // 개별평가 참고 계약 조회 후 화면 상단 참고정보를 채운다.
             function sbmIndividualEvalContract_submitdone(e) {
                 var response = JSON.parse(e.responseBody);
                 if (!response.success) {
@@ -413,10 +460,12 @@
                 scwin.loadIndividualEvalTargets();
             }
 
+            // 개별평가 대상 목록 응답 처리
             function sbmIndividualEvalTargets_submitdone(e) {
                 scwin.handleListResponse(e.responseBody, "dlIndividualEvalTargets");
             }
 
+            // 개별평가 대상 등록 후 상태문구를 갱신하고 목록을 다시 조회한다.
             function sbmCreateIndividualEvalTarget_submitdone(e) {
                 var response = JSON.parse(e.responseBody);
                 if (!response.success) {
@@ -431,6 +480,7 @@
                 scwin.loadIndividualEvalTargets();
             }
 
+            // 개별평가 대상 삭제 후 상태문구를 갱신하고 목록을 다시 조회한다.
             function sbmDeleteIndividualEvalTarget_submitdone(e) {
                 var response = JSON.parse(e.responseBody);
                 if (!response.success) {
@@ -446,12 +496,14 @@
 
     <w2:body ev:onload="scwin.onload()">
         <w2:group style="padding:24px;">
+            <!-- 화면 제목 및 학습 목적 안내 -->
             <w2:group style="margin-bottom:16px;">
                 <w2:textbox value="충당금 WebSquare 학습 화면" style="font-size:24px;font-weight:bold;"/>
                 <w2:textbox value="배치 실행 -> step 이력 -> 계약별 충당금 결과 -> 요약 조회 흐름을 WebSquare 기준으로 학습한다."
                             style="margin-top:8px;color:#666666;"/>
             </w2:group>
 
+            <!-- 충당금 배치 실행 및 배치실행번호 확인 영역 -->
             <w2:group style="margin-bottom:16px;">
                 <w2:textbox value="1. 배치 실행" style="font-size:18px;font-weight:bold;"/>
                 <w2:inputCalendar id="iptBaseDate" dataType="date" value="2026-01-10" style="width:140px;"/>
@@ -469,6 +521,7 @@
                 </w2:gridView>
             </w2:group>
 
+            <!-- 배치 이력 / 계약 조회 / 요약 조회에 공통으로 쓰는 조회 조건 영역 -->
             <w2:group style="margin-bottom:16px;">
                 <w2:textbox value="2. 조회 조건" style="font-size:18px;font-weight:bold;"/>
                 <w2:inputCalendar id="iptHistoryDate" dataType="date" value="2026-01-10" style="width:140px;"/>
@@ -481,6 +534,7 @@
                 <w2:trigger label="세그먼트 요약 조회" ev:onclick="scwin.loadSegmentSummary();"/>
             </w2:group>
 
+            <!-- 배치 헤더 이력과 Step 이력을 나란히 확인하는 영역 -->
             <w2:group style="margin-bottom:16px;">
                 <w2:textbox value="배치 이력 / Step 이력" style="font-size:16px;font-weight:bold;"/>
                 <w2:gridView id="grdBatchHistory" dataList="dlBatchHistory" style="width:100%;height:180px;">
@@ -506,6 +560,7 @@
                 </w2:gridView>
             </w2:group>
 
+            <!-- 개별평가 대상 관리: 참고 계약 조회 -> 등록 입력 -> 목록 조회 / 삭제 -->
             <w2:group style="margin-bottom:16px;">
                 <w2:textbox value="개별평가 대상 관리" style="font-size:16px;font-weight:bold;"/>
                 <w2:inputCalendar id="iptIeBaseDate" dataType="date" value="2026-01-10" style="width:140px;"/>
@@ -585,6 +640,7 @@
                 </w2:group>
             </w2:group>
 
+            <!-- 계약별 충당금 결과 조회 영역 -->
             <w2:group style="margin-bottom:16px;">
                 <w2:textbox value="계약별 충당금 결과" style="font-size:16px;font-weight:bold;"/>
                 <w2:gridView id="grdContractResults" dataList="dlContractResults" style="width:100%;height:220px;">
@@ -605,6 +661,7 @@
                 </w2:gridView>
             </w2:group>
 
+            <!-- 기준일자별 상품 / Stage 요약 영역 -->
             <w2:group style="margin-bottom:16px;">
                 <w2:textbox value="기준일자별 충당금 요약" style="font-size:16px;font-weight:bold;"/>
                 <w2:gridView id="grdSummary" dataList="dlSummary" style="width:100%;height:180px;">
@@ -620,6 +677,7 @@
                 </w2:gridView>
             </w2:group>
 
+            <!-- 기준일자별 고객유형 / 세그먼트 / Stage 요약 영역 -->
             <w2:group>
                 <w2:textbox value="세그먼트별 충당금 요약" style="font-size:16px;font-weight:bold;"/>
                 <w2:gridView id="grdSegmentSummary" dataList="dlSegmentSummary" style="width:100%;height:180px;">

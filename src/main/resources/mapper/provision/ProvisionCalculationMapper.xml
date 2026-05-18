@@ -44,6 +44,14 @@
         SELECT COUNT(*) FROM PRV_LGD_RESULT WHERE BATCH_EXECUTION_ID = #{batchExecutionId}
     </select>
 
+    <insert id="buildEclCashflow" statementType="CALLABLE">
+        { CALL PRC_PRV_BUILD_ECL_CASHFLOW(#{batchExecutionId}) }
+    </insert>
+
+    <select id="countEclCashflowResults" resultType="long">
+        SELECT COUNT(*) FROM PRV_ECL_CASHFLOW_DTL WHERE BATCH_EXECUTION_ID = #{batchExecutionId}
+    </select>
+
     <insert id="calculateEcl" statementType="CALLABLE">
         { CALL PRC_PRV_CALCULATE_ECL(#{batchExecutionId}) }
     </insert>

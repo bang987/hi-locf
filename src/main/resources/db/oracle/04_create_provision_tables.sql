@@ -7,6 +7,8 @@ BEGIN EXECUTE IMMEDIATE 'DROP TABLE PRV_ECL_RESULT_SUMMARY CASCADE CONSTRAINTS';
 /
 BEGIN EXECUTE IMMEDIATE 'DROP TABLE PRV_ECL_RESULT_DTL CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;
 /
+BEGIN EXECUTE IMMEDIATE 'DROP TABLE PRV_ECL_CASHFLOW_DTL CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;
+/
 BEGIN EXECUTE IMMEDIATE 'DROP TABLE PRV_LGD_RESULT CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;
 /
 BEGIN EXECUTE IMMEDIATE 'DROP TABLE PRV_PD_RESULT CASCADE CONSTRAINTS'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF; END;
@@ -34,6 +36,8 @@ BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE SQ_PRV_ECL_RESULT_SUMMARY'; EXCEPTION WHE
 /
 BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE SQ_PRV_ECL_RESULT_DTL'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -2289 THEN RAISE; END IF; END;
 /
+BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE SQ_PRV_ECL_CASHFLOW_DTL'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -2289 THEN RAISE; END IF; END;
+/
 BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE SQ_PRV_LGD_RESULT'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -2289 THEN RAISE; END IF; END;
 /
 BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE SQ_PRV_PD_RESULT'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -2289 THEN RAISE; END IF; END;
@@ -60,6 +64,8 @@ BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE SQ_CUSTOMER_RATING'; EXCEPTION WHEN OTHER
 BEGIN EXECUTE IMMEDIATE 'DROP PROCEDURE PRC_PRV_INSERT_RESULT_SUMMARY'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -4043 THEN RAISE; END IF; END;
 /
 BEGIN EXECUTE IMMEDIATE 'DROP PROCEDURE PRC_PRV_CALCULATE_ECL'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -4043 THEN RAISE; END IF; END;
+/
+BEGIN EXECUTE IMMEDIATE 'DROP PROCEDURE PRC_PRV_BUILD_ECL_CASHFLOW'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -4043 THEN RAISE; END IF; END;
 /
 BEGIN EXECUTE IMMEDIATE 'DROP PROCEDURE PRC_PRV_CALCULATE_LGD'; EXCEPTION WHEN OTHERS THEN IF SQLCODE != -4043 THEN RAISE; END IF; END;
 /
@@ -199,6 +205,28 @@ CREATE TABLE PRV_LGD_RESULT (
     CONSTRAINT FK_PRV_LGD_01 FOREIGN KEY (BATCH_EXECUTION_ID) REFERENCES PRV_BATCH_EXECUTION (BATCH_EXECUTION_ID)
 );
 
+CREATE TABLE PRV_ECL_CASHFLOW_DTL (
+    ECL_CASHFLOW_ID NUMBER(19,0) PRIMARY KEY,
+    BATCH_EXECUTION_ID NUMBER(19,0) NOT NULL,
+    TARGET_ID NUMBER(19,0) NOT NULL,
+    CONTRACT_ID NUMBER(19,0) NOT NULL,
+    CONTRACT_NO VARCHAR2(30 CHAR) NOT NULL,
+    INSTALLMENT_NO NUMBER(6,0) NOT NULL,
+    CASHFLOW_DATE DATE NOT NULL,
+    BEGINNING_EAD_AMOUNT NUMBER(18,2) NOT NULL,
+    EXPECTED_PRINCIPAL_AMT NUMBER(18,2) NOT NULL,
+    EXPECTED_INTEREST_AMT NUMBER(18,2) NOT NULL,
+    ENDING_EAD_AMOUNT NUMBER(18,2) NOT NULL,
+    MARGINAL_PD_RATE NUMBER(18,10) NOT NULL,
+    CUMULATIVE_PD_RATE NUMBER(18,10) NOT NULL,
+    LGD_RATE NUMBER(18,10) NOT NULL,
+    DISCOUNT_RATE NUMBER(18,10) NOT NULL,
+    DISCOUNT_FACTOR NUMBER(18,10) NOT NULL,
+    PERIOD_ECL_AMOUNT NUMBER(18,2) NOT NULL,
+    PV_ECL_AMOUNT NUMBER(18,2) NOT NULL,
+    CONSTRAINT FK_PRV_ECL_CF_01 FOREIGN KEY (BATCH_EXECUTION_ID) REFERENCES PRV_BATCH_EXECUTION (BATCH_EXECUTION_ID)
+);
+
 CREATE TABLE PRV_ECL_RESULT_DTL (
     RESULT_DTL_ID NUMBER(19,0) PRIMARY KEY,
     BATCH_EXECUTION_ID NUMBER(19,0) NOT NULL,
@@ -258,6 +286,7 @@ CREATE SEQUENCE SQ_PRV_STAGE_RESULT START WITH 1 INCREMENT BY 1 NOCACHE;
 CREATE SEQUENCE SQ_PRV_EAD_RESULT START WITH 1 INCREMENT BY 1 NOCACHE;
 CREATE SEQUENCE SQ_PRV_PD_RESULT START WITH 1 INCREMENT BY 1 NOCACHE;
 CREATE SEQUENCE SQ_PRV_LGD_RESULT START WITH 1 INCREMENT BY 1 NOCACHE;
+CREATE SEQUENCE SQ_PRV_ECL_CASHFLOW_DTL START WITH 1 INCREMENT BY 1 NOCACHE;
 CREATE SEQUENCE SQ_PRV_ECL_RESULT_DTL START WITH 1 INCREMENT BY 1 NOCACHE;
 CREATE SEQUENCE SQ_PRV_ECL_RESULT_SUMMARY START WITH 1 INCREMENT BY 1 NOCACHE;
 CREATE SEQUENCE SQ_PRV_INDIVIDUAL_EVAL_TARGET START WITH 1 INCREMENT BY 1 NOCACHE;
@@ -266,6 +295,7 @@ CREATE OR REPLACE PROCEDURE PRC_PRV_CLEAR_BATCH_DATA (p_batch_execution_id IN NU
 BEGIN
     DELETE FROM PRV_ECL_RESULT_SUMMARY WHERE BATCH_EXECUTION_ID = p_batch_execution_id;
     DELETE FROM PRV_ECL_RESULT_DTL WHERE BATCH_EXECUTION_ID = p_batch_execution_id;
+    DELETE FROM PRV_ECL_CASHFLOW_DTL WHERE BATCH_EXECUTION_ID = p_batch_execution_id;
     DELETE FROM PRV_LGD_RESULT WHERE BATCH_EXECUTION_ID = p_batch_execution_id;
     DELETE FROM PRV_PD_RESULT WHERE BATCH_EXECUTION_ID = p_batch_execution_id;
     DELETE FROM PRV_EAD_RESULT WHERE BATCH_EXECUTION_ID = p_batch_execution_id;
@@ -408,6 +438,154 @@ BEGIN
 END;
 /
 
+CREATE OR REPLACE PROCEDURE PRC_PRV_BUILD_ECL_CASHFLOW (p_batch_execution_id IN NUMBER) IS
+BEGIN
+    INSERT INTO PRV_ECL_CASHFLOW_DTL (
+        ECL_CASHFLOW_ID, BATCH_EXECUTION_ID, TARGET_ID, CONTRACT_ID, CONTRACT_NO,
+        INSTALLMENT_NO, CASHFLOW_DATE, BEGINNING_EAD_AMOUNT, EXPECTED_PRINCIPAL_AMT,
+        EXPECTED_INTEREST_AMT, ENDING_EAD_AMOUNT, MARGINAL_PD_RATE, CUMULATIVE_PD_RATE,
+        LGD_RATE, DISCOUNT_RATE, DISCOUNT_FACTOR, PERIOD_ECL_AMOUNT, PV_ECL_AMOUNT
+    )
+    SELECT SQ_PRV_ECL_CASHFLOW_DTL.NEXTVAL,
+           calc.BATCH_EXECUTION_ID,
+           calc.TARGET_ID,
+           calc.CONTRACT_ID,
+           calc.CONTRACT_NO,
+           calc.INSTALLMENT_NO,
+           calc.CASHFLOW_DATE,
+           calc.BEGINNING_EAD_AMOUNT,
+           calc.EXPECTED_PRINCIPAL_AMT,
+           calc.EXPECTED_INTEREST_AMT,
+           calc.ENDING_EAD_AMOUNT,
+           calc.MARGINAL_PD_RATE,
+           calc.CUMULATIVE_PD_RATE,
+           calc.LGD_RATE,
+           calc.DISCOUNT_RATE,
+           calc.DISCOUNT_FACTOR,
+           ROUND(calc.BEGINNING_EAD_AMOUNT * calc.MARGINAL_PD_RATE * calc.LGD_RATE, 2),
+           ROUND(calc.BEGINNING_EAD_AMOUNT * calc.MARGINAL_PD_RATE * calc.LGD_RATE * calc.DISCOUNT_FACTOR, 2)
+      FROM (
+            SELECT base_rows.BATCH_EXECUTION_ID,
+                   base_rows.TARGET_ID,
+                   base_rows.CONTRACT_ID,
+                   base_rows.CONTRACT_NO,
+                   base_rows.INSTALLMENT_NO,
+                   base_rows.CASHFLOW_DATE,
+                   base_rows.BEGINNING_EAD_AMOUNT,
+                   base_rows.EXPECTED_PRINCIPAL_AMT,
+                   base_rows.EXPECTED_INTEREST_AMT,
+                   base_rows.ENDING_EAD_AMOUNT,
+                   CASE
+                       WHEN base_rows.STAGE_CODE = 'STAGE1'
+                            AND base_rows.REMAINING_COUNT = 1
+                            THEN base_rows.ONE_YEAR_PD_RATE
+                       WHEN base_rows.STAGE_CODE = 'STAGE1'
+                            AND MONTHS_BETWEEN(base_rows.CASHFLOW_DATE, base_rows.BASE_DATE) <= 12
+                            THEN base_rows.ONE_YEAR_PD_RATE * POWER(12, -1)
+                       WHEN base_rows.STAGE_CODE = 'STAGE1'
+                            THEN 0
+                       ELSE base_rows.LIFETIME_PD_RATE * POWER(base_rows.REMAINING_COUNT, -1)
+                   END AS MARGINAL_PD_RATE,
+                   CASE
+                       WHEN base_rows.STAGE_CODE = 'STAGE1'
+                            AND base_rows.REMAINING_COUNT = 1
+                            THEN base_rows.ONE_YEAR_PD_RATE
+                       WHEN base_rows.STAGE_CODE = 'STAGE1'
+                            AND MONTHS_BETWEEN(base_rows.CASHFLOW_DATE, base_rows.BASE_DATE) <= 12
+                            THEN LEAST(base_rows.ONE_YEAR_PD_RATE, base_rows.ONE_YEAR_PD_RATE * POWER(12, -1) * base_rows.PERIOD_NO)
+                       WHEN base_rows.STAGE_CODE = 'STAGE1'
+                            THEN base_rows.ONE_YEAR_PD_RATE
+                       ELSE LEAST(base_rows.LIFETIME_PD_RATE, base_rows.LIFETIME_PD_RATE * POWER(base_rows.REMAINING_COUNT, -1) * base_rows.PERIOD_NO)
+                   END AS CUMULATIVE_PD_RATE,
+                   base_rows.LGD_RATE,
+                   base_rows.MONTHLY_EIR AS DISCOUNT_RATE,
+                   POWER(1 + base_rows.MONTHLY_EIR, -GREATEST(1, CEIL(MONTHS_BETWEEN(base_rows.CASHFLOW_DATE, base_rows.BASE_DATE)))) AS DISCOUNT_FACTOR
+              FROM (
+                    SELECT rows_src.*,
+                           COUNT(*) OVER (PARTITION BY rows_src.TARGET_ID) AS REMAINING_COUNT,
+                           ROW_NUMBER() OVER (PARTITION BY rows_src.TARGET_ID ORDER BY rows_src.CASHFLOW_DATE, rows_src.INSTALLMENT_NO) AS PERIOD_NO
+                      FROM (
+                            SELECT t.BATCH_EXECUTION_ID,
+                                   t.TARGET_ID,
+                                   t.CONTRACT_ID,
+                                   t.CONTRACT_NO,
+                                   t.BASE_DATE,
+                                   s.STAGE_CODE,
+                                   p.ONE_YEAR_PD_RATE,
+                                   p.LIFETIME_PD_RATE,
+                                   l.LGD_RATE,
+                                   NVL(eir.MONTHLY_EIR, 0) AS MONTHLY_EIR,
+                                   d.INSTALLMENT_NO,
+                                   d.PAYMENT_DATE AS CASHFLOW_DATE,
+                                   d.OPENING_CARRYING_AMT AS BEGINNING_EAD_AMOUNT,
+                                   d.SCHEDULED_PRINCIPAL_AMT AS EXPECTED_PRINCIPAL_AMT,
+                                   d.SCHEDULED_INTEREST_AMT AS EXPECTED_INTEREST_AMT,
+                                   d.CLOSING_CARRYING_AMT AS ENDING_EAD_AMOUNT
+                              FROM PRV_TARGET_CONTRACT t,
+                                   PRV_STAGE_RESULT s,
+                                   PRV_PD_RESULT p,
+                                   PRV_LGD_RESULT l,
+                                   LOCF_AMORTIZATION_DTL d,
+                                   LOCF_BATCH_EXECUTION lb,
+                                   LOCF_EIR_RESULT eir
+                             WHERE s.TARGET_ID = t.TARGET_ID
+                               AND p.TARGET_ID = t.TARGET_ID
+                               AND l.TARGET_ID = t.TARGET_ID
+                               AND d.CONTRACT_ID = t.CONTRACT_ID
+                               AND d.PAYMENT_DATE > t.BASE_DATE
+                               AND lb.BATCH_EXECUTION_ID = d.BATCH_EXECUTION_ID
+                               AND lb.BASE_DATE = t.BASE_DATE
+                               AND lb.STATUS_CODE = 'COMPLETED'
+                               AND lb.BATCH_EXECUTION_ID = (
+                                   SELECT MAX(lb2.BATCH_EXECUTION_ID)
+                                     FROM LOCF_BATCH_EXECUTION lb2
+                                    WHERE lb2.BASE_DATE = t.BASE_DATE
+                                      AND lb2.STATUS_CODE = 'COMPLETED'
+                               )
+                               AND eir.BATCH_EXECUTION_ID(+) = d.BATCH_EXECUTION_ID
+                               AND eir.CONTRACT_ID(+) = d.CONTRACT_ID
+                               AND t.BATCH_EXECUTION_ID = p_batch_execution_id
+                            UNION ALL
+                            SELECT t.BATCH_EXECUTION_ID,
+                                   t.TARGET_ID,
+                                   t.CONTRACT_ID,
+                                   t.CONTRACT_NO,
+                                   t.BASE_DATE,
+                                   s.STAGE_CODE,
+                                   p.ONE_YEAR_PD_RATE,
+                                   p.LIFETIME_PD_RATE,
+                                   l.LGD_RATE,
+                                   0 AS MONTHLY_EIR,
+                                   1 AS INSTALLMENT_NO,
+                                   t.BASE_DATE AS CASHFLOW_DATE,
+                                   t.CARRYING_AMOUNT AS BEGINNING_EAD_AMOUNT,
+                                   0 AS EXPECTED_PRINCIPAL_AMT,
+                                   0 AS EXPECTED_INTEREST_AMT,
+                                   t.CARRYING_AMOUNT AS ENDING_EAD_AMOUNT
+                              FROM PRV_TARGET_CONTRACT t,
+                                   PRV_STAGE_RESULT s,
+                                   PRV_PD_RESULT p,
+                                   PRV_LGD_RESULT l
+                             WHERE s.TARGET_ID = t.TARGET_ID
+                               AND p.TARGET_ID = t.TARGET_ID
+                               AND l.TARGET_ID = t.TARGET_ID
+                               AND t.BATCH_EXECUTION_ID = p_batch_execution_id
+                               AND NOT EXISTS (
+                                   SELECT 1
+                                     FROM LOCF_AMORTIZATION_DTL d,
+                                          LOCF_BATCH_EXECUTION lb
+                                    WHERE d.CONTRACT_ID = t.CONTRACT_ID
+                                      AND d.PAYMENT_DATE > t.BASE_DATE
+                                      AND lb.BATCH_EXECUTION_ID = d.BATCH_EXECUTION_ID
+                                      AND lb.BASE_DATE = t.BASE_DATE
+                                      AND lb.STATUS_CODE = 'COMPLETED'
+                               )
+                      ) rows_src
+              ) base_rows
+      ) calc;
+END;
+/
+
 CREATE OR REPLACE PROCEDURE PRC_PRV_CALCULATE_ECL (p_batch_execution_id IN NUMBER) IS
 BEGIN
     INSERT INTO PRV_ECL_RESULT_DTL (
@@ -430,21 +608,25 @@ BEGIN
            p.LIFETIME_PD_RATE,
            l.LGD_RATE,
            l.RECOVERY_RATE,
-           ROUND(
-               e.EAD_AMOUNT
-               * CASE WHEN s.STAGE_CODE = 'STAGE1' THEN p.ONE_YEAR_PD_RATE ELSE p.LIFETIME_PD_RATE END
-               * l.LGD_RATE,
-               2
-           )
+           NVL(cf.ECL_AMOUNT, 0)
         FROM PRV_TARGET_CONTRACT t,
              PRV_STAGE_RESULT s,
              PRV_EAD_RESULT e,
              PRV_PD_RESULT p,
-             PRV_LGD_RESULT l
+             PRV_LGD_RESULT l,
+             (
+                 SELECT BATCH_EXECUTION_ID,
+                        TARGET_ID,
+                        SUM(PV_ECL_AMOUNT) AS ECL_AMOUNT
+                   FROM PRV_ECL_CASHFLOW_DTL
+                  WHERE BATCH_EXECUTION_ID = p_batch_execution_id
+                  GROUP BY BATCH_EXECUTION_ID, TARGET_ID
+             ) cf
        WHERE s.TARGET_ID = t.TARGET_ID
          AND e.TARGET_ID = t.TARGET_ID
          AND p.TARGET_ID = t.TARGET_ID
          AND l.TARGET_ID = t.TARGET_ID
+         AND cf.TARGET_ID(+) = t.TARGET_ID
          AND t.BATCH_EXECUTION_ID = p_batch_execution_id;
 END;
 /

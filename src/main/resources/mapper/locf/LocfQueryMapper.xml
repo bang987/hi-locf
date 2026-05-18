@@ -72,12 +72,12 @@
                h.TOTAL_EFFECTIVE_INTEREST_REV,
                h.TOTAL_FEE_AMORTIZATION_AMT,
                h.TOTAL_COST_AMORTIZATION_AMT
-          FROM LOCF_RESULT_HDR h,
-               LOCF_BATCH_EXECUTION b,
-               CUSTOMER_MASTER c
-         WHERE b.BATCH_EXECUTION_ID = h.BATCH_EXECUTION_ID
-           AND c.CUSTOMER_ID(+) = h.CUSTOMER_ID
-           AND h.CONTRACT_NO = #{contractNo}
+          FROM LOCF_RESULT_HDR h
+          JOIN LOCF_BATCH_EXECUTION b
+            ON b.BATCH_EXECUTION_ID = h.BATCH_EXECUTION_ID
+          LEFT JOIN CUSTOMER_MASTER c
+            ON c.CUSTOMER_ID = h.CUSTOMER_ID
+         WHERE h.CONTRACT_NO = #{contractNo}
          ORDER BY h.RESULT_HDR_ID DESC
          FETCH FIRST 1 ROWS ONLY
     </select>
@@ -169,12 +169,12 @@
                     FETCH FIRST 1 ROWS ONLY
                ) AS OUTSTANDING_PRINCIPAL_AMT,
                c.STATUS_CODE
-          FROM LOAN_CONTRACT c,
-               CUSTOMER_MASTER m,
-               LOAN_RATE r
-         WHERE m.CUSTOMER_ID = c.CUSTOMER_ID
-           AND r.CONTRACT_ID(+) = c.CONTRACT_ID
-           AND r.EFFECTIVE_FROM(+) = (
+          FROM LOAN_CONTRACT c
+          JOIN CUSTOMER_MASTER m
+            ON m.CUSTOMER_ID = c.CUSTOMER_ID
+          LEFT JOIN LOAN_RATE r
+            ON r.CONTRACT_ID = c.CONTRACT_ID
+           AND r.EFFECTIVE_FROM = (
                SELECT MAX(r2.EFFECTIVE_FROM)
                  FROM LOAN_RATE r2
                 WHERE r2.CONTRACT_ID = c.CONTRACT_ID

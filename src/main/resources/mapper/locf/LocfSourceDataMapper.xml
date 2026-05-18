@@ -149,10 +149,10 @@
                c.STATUS_CODE,
                c.CREATED_AT,
                c.UPDATED_AT
-          FROM LOAN_CONTRACT c,
-               CUSTOMER_MASTER cm
-         WHERE cm.CUSTOMER_ID(+) = c.CUSTOMER_ID
-           AND c.CONTRACT_NO = #{contractNo}
+          FROM LOAN_CONTRACT c
+          LEFT JOIN CUSTOMER_MASTER cm
+            ON cm.CUSTOMER_ID = c.CUSTOMER_ID
+         WHERE c.CONTRACT_NO = #{contractNo}
     </select>
 
     <select id="findRepaymentSchedulesByContractId" resultMap="loanRepaymentScheduleResultMap">

@@ -74,6 +74,11 @@ public class ProvisionBatchServiceImpl implements ProvisionBatchService {
                 return provisionCalculationMapper.countLgdResults(execution.getBatchExecutionId());
             });
 
+            runStep("ECL_CASHFLOW", execution.getBatchExecutionId(), () -> {
+                provisionCalculationMapper.buildEclCashflow(execution.getBatchExecutionId());
+                return provisionCalculationMapper.countEclCashflowResults(execution.getBatchExecutionId());
+            });
+
             long processedCount = runStep("ECL", execution.getBatchExecutionId(), () -> {
                 provisionCalculationMapper.calculateEcl(execution.getBatchExecutionId());
                 return provisionCalculationMapper.countEclResults(execution.getBatchExecutionId());

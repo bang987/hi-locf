@@ -58,10 +58,10 @@
                t.EXECUTION_DATE,
                t.MATURITY_DATE,
                t.TERM_IN_MONTHS
-          FROM LOCF_TARGET_CONTRACT t,
-               CUSTOMER_MASTER cm
-         WHERE cm.CUSTOMER_ID(+) = t.CUSTOMER_ID
-           AND t.BATCH_EXECUTION_ID = #{batchExecutionId}
+          FROM LOCF_TARGET_CONTRACT t
+          LEFT JOIN CUSTOMER_MASTER cm
+            ON cm.CUSTOMER_ID = t.CUSTOMER_ID
+         WHERE t.BATCH_EXECUTION_ID = #{batchExecutionId}
          ORDER BY t.CONTRACT_ID ASC
     </select>
 

@@ -67,6 +67,7 @@ public final class H2LocfProcedures {
     public static void clearProvisionBatchData(Connection connection, Long batchExecutionId) throws Exception {
         executeDelete(connection, "DELETE FROM PRV_ECL_RESULT_SUMMARY WHERE BATCH_EXECUTION_ID = ?", batchExecutionId);
         executeDelete(connection, "DELETE FROM PRV_ECL_RESULT_DTL WHERE BATCH_EXECUTION_ID = ?", batchExecutionId);
+        executeDelete(connection, "DELETE FROM PRV_ECL_CASHFLOW_DTL WHERE BATCH_EXECUTION_ID = ?", batchExecutionId);
         executeDelete(connection, "DELETE FROM PRV_LGD_RESULT WHERE BATCH_EXECUTION_ID = ?", batchExecutionId);
         executeDelete(connection, "DELETE FROM PRV_PD_RESULT WHERE BATCH_EXECUTION_ID = ?", batchExecutionId);
         executeDelete(connection, "DELETE FROM PRV_EAD_RESULT WHERE BATCH_EXECUTION_ID = ?", batchExecutionId);
@@ -152,13 +153,18 @@ public final class H2LocfProcedures {
         executeInsertWithBatchId(connection, sql, batchExecutionId);
     }
 
-    public static void calculateProvisionEcl(Connection connection, Long batchExecutionId) throws Exception {
+    public static void buildProvisionEclCashflow(Connection connection, Long batchExecutionId) throws Exception {
         String sql =
-                "INSERT INTO PRV_ECL_RESULT_DTL (" +
-                "RESULT_DTL_ID, BATCH_EXECUTION_ID, BASE_DATE, CONTRACT_ID, CONTRACT_NO, CUSTOMER_NAME, PRODUCT_CODE, STAGE_CODE, STAGE_REASON, " +
-                "CARRYING_AMOUNT, EAD_AMOUNT, ONE_YEAR_PD_RATE, LIFETIME_PD_RATE, LGD_RATE, RECOVERY_RATE, ECL_AMOUNT) " +
-                "SELECT NEXT VALUE FOR SQ_PRV_ECL_RESULT_DTL, t.BATCH_EXECUTION_ID, t.BASE_DATE, t.CONTRACT_ID, t.CONTRACT_NO, t.CUSTOMER_NAME, t.PRODUCT_CODE, s.STAGE_CODE, s.STAGE_REASON, " +
-                "e.CARRYING_AMOUNT, e.EAD_AMOUNT, p.ONE_YEAR_PD_RATE, p.LIFETIME_PD_RATE, l.LGD_RATE, l.RECOVERY_RATE, " +
+                "INSERT INTO PRV_ECL_CASHFLOW_DTL (" +
+                "ECL_CASHFLOW_ID, BATCH_EXECUTION_ID, TARGET_ID, CONTRACT_ID, CONTRACT_NO, INSTALLMENT_NO, CASHFLOW_DATE, " +
+                "BEGINNING_EAD_AMOUNT, EXPECTED_PRINCIPAL_AMT, EXPECTED_INTEREST_AMT, ENDING_EAD_AMOUNT, " +
+                "MARGINAL_PD_RATE, CUMULATIVE_PD_RATE, LGD_RATE, DISCOUNT_RATE, DISCOUNT_FACTOR, PERIOD_ECL_AMOUNT, PV_ECL_AMOUNT) " +
+                "SELECT NEXT VALUE FOR SQ_PRV_ECL_CASHFLOW_DTL, t.BATCH_EXECUTION_ID, t.TARGET_ID, t.CONTRACT_ID, t.CONTRACT_NO, " +
+                "1, t.BASE_DATE, e.EAD_AMOUNT, 0, 0, e.EAD_AMOUNT, " +
+                "CASE WHEN s.STAGE_CODE = 'STAGE1' THEN p.ONE_YEAR_PD_RATE ELSE p.LIFETIME_PD_RATE END, " +
+                "CASE WHEN s.STAGE_CODE = 'STAGE1' THEN p.ONE_YEAR_PD_RATE ELSE p.LIFETIME_PD_RATE END, " +
+                "l.LGD_RATE, 0, 1, " +
+                "ROUND(e.EAD_AMOUNT * CASE WHEN s.STAGE_CODE = 'STAGE1' THEN p.ONE_YEAR_PD_RATE ELSE p.LIFETIME_PD_RATE END * l.LGD_RATE, 2), " +
                 "ROUND(e.EAD_AMOUNT * CASE WHEN s.STAGE_CODE = 'STAGE1' THEN p.ONE_YEAR_PD_RATE ELSE p.LIFETIME_PD_RATE END * l.LGD_RATE, 2) " +
                 "FROM PRV_TARGET_CONTRACT t " +
                 "JOIN PRV_STAGE_RESULT s ON s.TARGET_ID = t.TARGET_ID " +
@@ -167,6 +173,29 @@ public final class H2LocfProcedures {
                 "JOIN PRV_LGD_RESULT l ON l.TARGET_ID = t.TARGET_ID " +
                 "WHERE t.BATCH_EXECUTION_ID = ?";
         executeInsertWithBatchId(connection, sql, batchExecutionId);
+    }
+
+    public static void calculateProvisionEcl(Connection connection, Long batchExecutionId) throws Exception {
+        String sql =
+                "INSERT INTO PRV_ECL_RESULT_DTL (" +
+                "RESULT_DTL_ID, BATCH_EXECUTION_ID, BASE_DATE, CONTRACT_ID, CONTRACT_NO, CUSTOMER_NAME, PRODUCT_CODE, STAGE_CODE, STAGE_REASON, " +
+                "CARRYING_AMOUNT, EAD_AMOUNT, ONE_YEAR_PD_RATE, LIFETIME_PD_RATE, LGD_RATE, RECOVERY_RATE, ECL_AMOUNT) " +
+                "SELECT NEXT VALUE FOR SQ_PRV_ECL_RESULT_DTL, t.BATCH_EXECUTION_ID, t.BASE_DATE, t.CONTRACT_ID, t.CONTRACT_NO, t.CUSTOMER_NAME, t.PRODUCT_CODE, s.STAGE_CODE, s.STAGE_REASON, " +
+                "e.CARRYING_AMOUNT, e.EAD_AMOUNT, p.ONE_YEAR_PD_RATE, p.LIFETIME_PD_RATE, l.LGD_RATE, l.RECOVERY_RATE, " +
+                "COALESCE(cf.ECL_AMOUNT, 0) " +
+                "FROM PRV_TARGET_CONTRACT t " +
+                "JOIN PRV_STAGE_RESULT s ON s.TARGET_ID = t.TARGET_ID " +
+                "JOIN PRV_EAD_RESULT e ON e.TARGET_ID = t.TARGET_ID " +
+                "JOIN PRV_PD_RESULT p ON p.TARGET_ID = t.TARGET_ID " +
+                "JOIN PRV_LGD_RESULT l ON l.TARGET_ID = t.TARGET_ID " +
+                "LEFT JOIN (SELECT BATCH_EXECUTION_ID, TARGET_ID, SUM(PV_ECL_AMOUNT) AS ECL_AMOUNT FROM PRV_ECL_CASHFLOW_DTL " +
+                "WHERE BATCH_EXECUTION_ID = ? GROUP BY BATCH_EXECUTION_ID, TARGET_ID) cf ON cf.TARGET_ID = t.TARGET_ID " +
+                "WHERE t.BATCH_EXECUTION_ID = ?";
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            preparedStatement.setLong(1, batchExecutionId);
+            preparedStatement.setLong(2, batchExecutionId);
+            preparedStatement.executeUpdate();
+        }
     }
 
     public static void insertProvisionResultSummary(Connection connection, Long batchExecutionId) throws Exception {

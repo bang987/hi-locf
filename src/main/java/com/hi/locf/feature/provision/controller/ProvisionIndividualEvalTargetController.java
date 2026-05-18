@@ -30,6 +30,7 @@ public class ProvisionIndividualEvalTargetController {
         this.provisionIndividualEvalTargetService = provisionIndividualEvalTargetService;
     }
 
+    //저장
     @PostMapping
     public ApiResponse<ProvisionIndividualEvalTargetResponse> createTarget(
             @RequestBody ProvisionIndividualEvalTargetRequest request
@@ -37,6 +38,7 @@ public class ProvisionIndividualEvalTargetController {
         return ApiResponse.ok(provisionIndividualEvalTargetService.createTarget(request));
     }
 
+    //조회
     @GetMapping
     public ApiResponse<List<ProvisionIndividualEvalTargetResponse>> getTargets(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate baseDate,

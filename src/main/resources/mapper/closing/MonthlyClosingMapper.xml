@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hi.locf.feature.closing.mapper.MonthlyClosingMapper">
+
+    <resultMap id="monthlyClosingStatusResultMap" type="com.hi.locf.feature.closing.dto.MonthlyClosingStatusResponse">
+        <result property="baseDate" column="BASE_DATE"/>
+        <result property="locfBatchRunNo" column="LOCF_BATCH_RUN_NO"/>
+        <result property="locfStatusCode" column="LOCF_STATUS_CODE"/>
+        <result property="locfFinishedAt" column="LOCF_FINISHED_AT"/>
+        <result property="provisionBatchRunNo" column="PROVISION_BATCH_RUN_NO"/>
+        <result property="provisionStatusCode" column="PROVISION_STATUS_CODE"/>
+        <result property="provisionFinishedAt" column="PROVISION_FINISHED_AT"/>
+        <result property="closingStatusCode" column="CLOSING_STATUS_CODE"/>
+        <result property="nextAction" column="NEXT_ACTION"/>
+    </resultMap>
+
+    <select id="findMonthlyStatus" resultMap="monthlyClosingStatusResultMap">
+        SELECT #{baseDate} AS BASE_DATE,
+               locf.BATCH_RUN_NO AS LOCF_BATCH_RUN_NO,
+               locf.STATUS_CODE AS LOCF_STATUS_CODE,
+               locf.FINISHED_AT AS LOCF_FINISHED_AT,
+               prv.BATCH_RUN_NO AS PROVISION_BATCH_RUN_NO,
+               prv.STATUS_CODE AS PROVISION_STATUS_CODE,
+               prv.FINISHED_AT AS PROVISION_FINISHED_AT,
+               CASE
+                   WHEN locf.STATUS_CODE = 'COMPLETED' AND prv.STATUS_CODE = 'COMPLETED' THEN 'PROVISION_CLOSED'
+                   WHEN locf.STATUS_CODE = 'COMPLETED' THEN 'PROVISION_READY'
+                   WHEN locf.STATUS_CODE IS NULL THEN 'LOCF_REQUIRED'
+                   ELSE 'LOCF_IN_PROGRESS'
+               END AS CLOSING_STATUS_CODE,
+               CASE
+                   WHEN locf.STATUS_CODE = 'COMPLETED' AND prv.STATUS_CODE = 'COMPLETED' THEN '충당금 검증 후 전표 생성 단계로 진행'
+                   WHEN locf.STATUS_CODE = 'COMPLETED' THEN '충당금 배치 실행'
+                   WHEN locf.STATUS_CODE IS NULL THEN 'LOCF 배치 실행'
+                   ELSE 'LOCF 결과 확인'
+               END AS NEXT_ACTION
+          FROM DUAL seed
+          LEFT JOIN (
+                SELECT BATCH_RUN_NO, STATUS_CODE, FINISHED_AT
+                  FROM LOCF_BATCH_EXECUTION
+                 WHERE BASE_DATE = #{baseDate}
+                   AND BATCH_EXECUTION_ID = (
+                       SELECT MAX(BATCH_EXECUTION_ID)
+                         FROM LOCF_BATCH_EXECUTION
+                        WHERE BASE_DATE = #{baseDate}
+                   )
+          ) locf ON 1 = 1
+          LEFT JOIN (
+                SELECT BATCH_RUN_NO, STATUS_CODE, FINISHED_AT
+                  FROM PRV_BATCH_EXECUTION
+                 WHERE BASE_DATE = #{baseDate}
+                   AND BATCH_EXECUTION_ID = (
+                       SELECT MAX(BATCH_EXECUTION_ID)
+                         FROM PRV_BATCH_EXECUTION
+                        WHERE BASE_DATE = #{baseDate}
+                   )
+          ) prv ON 1 = 1
+    </select>
+</mapper>

@@ -26,6 +26,10 @@ public interface ProvisionCalculationMapper {
 
     long countLgdResults(@Param("batchExecutionId") Long batchExecutionId);
 
+    void buildEclCashflow(@Param("batchExecutionId") Long batchExecutionId);
+
+    long countEclCashflowResults(@Param("batchExecutionId") Long batchExecutionId);
+
     void calculateEcl(@Param("batchExecutionId") Long batchExecutionId);
 
     long countEclResults(@Param("batchExecutionId") Long batchExecutionId);

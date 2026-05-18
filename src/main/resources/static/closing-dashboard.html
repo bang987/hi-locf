@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>월마감 현황</title>
+    <style>
+        :root {
+            --bg: #f4f6f5;
+            --panel: #ffffff;
+            --line: #ccd6d1;
+            --ink: #202826;
+            --muted: #64736d;
+            --green: #2f6b57;
+            --amber: #9a6a1f;
+            --blue: #315f8c;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: "Malgun Gothic", "Apple SD Gothic Neo", sans-serif;
+            color: var(--ink);
+            background: var(--bg);
+        }
+        .wrap {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+        header {
+            display: flex;
+            justify-content: space-between;
+            gap: 16px;
+            align-items: flex-end;
+            padding-bottom: 18px;
+            border-bottom: 1px solid var(--line);
+            margin-bottom: 18px;
+        }
+        h1 { margin: 0 0 6px; font-size: 28px; }
+        .muted { color: var(--muted); font-size: 13px; }
+        .toolbar {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        input, button, a.button {
+            height: 38px;
+            border-radius: 6px;
+            border: 1px solid var(--line);
+            padding: 0 12px;
+            font-size: 14px;
+        }
+        input { background: #fff; }
+        button, a.button {
+            display: inline-flex;
+            align-items: center;
+            text-decoration: none;
+            background: var(--green);
+            color: #fff;
+            cursor: pointer;
+            border-color: var(--green);
+        }
+        a.button.secondary {
+            background: #fff;
+            color: var(--ink);
+            border-color: var(--line);
+        }
+        .process {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 14px;
+            margin: 18px 0;
+        }
+        .step {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 16px;
+            min-height: 150px;
+        }
+        .step h2 {
+            margin: 0 0 10px;
+            font-size: 17px;
+        }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            min-height: 24px;
+            padding: 3px 9px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            background: #edf2ef;
+            color: var(--muted);
+        }
+        .badge.done { background: #e2f1ea; color: var(--green); }
+        .badge.ready { background: #f6ecd8; color: var(--amber); }
+        .badge.wait { background: #e6eef6; color: var(--blue); }
+        dl {
+            display: grid;
+            grid-template-columns: 88px 1fr;
+            gap: 6px 10px;
+            margin: 12px 0 0;
+            font-size: 13px;
+        }
+        dt { color: var(--muted); }
+        dd { margin: 0; overflow-wrap: anywhere; }
+        .notice {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-left: 4px solid var(--green);
+            border-radius: 6px;
+            padding: 14px 16px;
+            margin-top: 16px;
+        }
+        @media (max-width: 860px) {
+            header { align-items: stretch; flex-direction: column; }
+            .process { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <header>
+        <div>
+            <h1>월마감 현황</h1>
+            <div class="muted">LOCF 확정 후 충당금 실행, 이후 회계분개로 이어지는 마감 순서를 확인한다.</div>
+        </div>
+        <div class="toolbar">
+            <input id="baseDate" type="date" value="2026-01-10">
+            <button onclick="loadStatus()">조회</button>
+            <a class="button secondary" href="/hi-locf/locf-sample.html">LOCF 화면</a>
+            <a class="button secondary" href="/hi-locf/provision-sample.html">충당금 화면</a>
+        </div>
+    </header>
+
+    <main>
+        <section class="process">
+            <article class="step">
+                <h2>1. LOCF 마감</h2>
+                <span id="locfBadge" class="badge">대기</span>
+                <dl>
+                    <dt>배치번호</dt><dd id="locfRunNo">-</dd>
+                    <dt>상태</dt><dd id="locfStatus">-</dd>
+                    <dt>완료시각</dt><dd id="locfFinishedAt">-</dd>
+                </dl>
+            </article>
+            <article class="step">
+                <h2>2. 충당금 마감</h2>
+                <span id="provisionBadge" class="badge">대기</span>
+                <dl>
+                    <dt>배치번호</dt><dd id="provisionRunNo">-</dd>
+                    <dt>상태</dt><dd id="provisionStatus">-</dd>
+                    <dt>완료시각</dt><dd id="provisionFinishedAt">-</dd>
+                </dl>
+            </article>
+            <article class="step">
+                <h2>3. 전표 연계</h2>
+                <span id="closingBadge" class="badge">대기</span>
+                <dl>
+                    <dt>마감상태</dt><dd id="closingStatus">-</dd>
+                    <dt>다음작업</dt><dd id="nextAction">-</dd>
+                </dl>
+            </article>
+        </section>
+
+        <div class="notice">
+            기준일 LOCF 배치가 완료되어야 충당금 배치 결과를 업무적으로 확정할 수 있다. LOCF를 재실행하면 동일 기준일 충당금은 재산출 대상이다.
+        </div>
+    </main>
+</div>
+
+<script>
+const apiBase = '/hi-locf/api/v1';
+
+function text(id, value) {
+    document.getElementById(id).textContent = value || '-';
+}
+
+function setBadge(id, status) {
+    const badge = document.getElementById(id);
+    badge.className = 'badge';
+    if (status === 'COMPLETED' || status === 'PROVISION_CLOSED') {
+        badge.classList.add('done');
+        badge.textContent = '완료';
+    } else if (status === 'PROVISION_READY') {
+        badge.classList.add('ready');
+        badge.textContent = '실행가능';
+    } else {
+        badge.classList.add('wait');
+        badge.textContent = '대기';
+    }
+}
+
+async function loadStatus() {
+    const baseDate = document.getElementById('baseDate').value;
+    const response = await fetch(`${apiBase}/closing/monthly-status?baseDate=${baseDate}`);
+    const json = await response.json();
+    const data = json.data || {};
+
+    text('locfRunNo', data.locfBatchRunNo);
+    text('locfStatus', data.locfStatusCode);
+    text('locfFinishedAt', data.locfFinishedAt);
+    text('provisionRunNo', data.provisionBatchRunNo);
+    text('provisionStatus', data.provisionStatusCode);
+    text('provisionFinishedAt', data.provisionFinishedAt);
+    text('closingStatus', data.closingStatusCode);
+    text('nextAction', data.nextAction);
+
+    setBadge('locfBadge', data.locfStatusCode);
+    setBadge('provisionBadge', data.provisionStatusCode || data.closingStatusCode);
+    setBadge('closingBadge', data.closingStatusCode);
+}
+
+loadStatus();
+</script>
+</body>
+</html>
