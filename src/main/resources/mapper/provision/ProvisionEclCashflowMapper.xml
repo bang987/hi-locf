@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.hi.locf.feature.provision.mapper.ProvisionEclCashflowMapper">
+
+    <resultMap id="provisionEclCashflowSourceRowResultMap" type="com.hi.locf.feature.provision.entity.ProvisionEclCashflowSourceRow">
+        <result property="batchExecutionId" column="BATCH_EXECUTION_ID"/>
+        <result property="targetId" column="TARGET_ID"/>
+        <result property="contractId" column="CONTRACT_ID"/>
+        <result property="contractNo" column="CONTRACT_NO"/>
+        <result property="baseDate" column="BASE_DATE"/>
+        <result property="stageCode" column="STAGE_CODE"/>
+        <result property="oneYearPdRate" column="ONE_YEAR_PD_RATE"/>
+        <result property="lifetimePdRate" column="LIFETIME_PD_RATE"/>
+        <result property="lgdRate" column="LGD_RATE"/>
+        <result property="monthlyEir" column="MONTHLY_EIR"/>
+        <result property="installmentNo" column="INSTALLMENT_NO"/>
+        <result property="cashflowDate" column="CASHFLOW_DATE"/>
+        <result property="beginningEadAmount" column="BEGINNING_EAD_AMOUNT"/>
+        <result property="expectedPrincipalAmt" column="EXPECTED_PRINCIPAL_AMT"/>
+        <result property="expectedInterestAmt" column="EXPECTED_INTEREST_AMT"/>
+        <result property="endingEadAmount" column="ENDING_EAD_AMOUNT"/>
+    </resultMap>
+
+    <select id="findCashflowSourceRows" resultMap="provisionEclCashflowSourceRowResultMap">
+        SELECT source_rows.*
+          FROM (
+                SELECT t.BATCH_EXECUTION_ID,
+                       t.TARGET_ID,
+                       t.CONTRACT_ID,
+                       t.CONTRACT_NO,
+                       t.BASE_DATE,
+                       s.STAGE_CODE,
+                       p.ONE_YEAR_PD_RATE,
+                       p.LIFETIME_PD_RATE,
+                       l.LGD_RATE,
+                       COALESCE(eir.MONTHLY_EIR, 0) AS MONTHLY_EIR,
+                       d.INSTALLMENT_NO,
+                       d.PAYMENT_DATE AS CASHFLOW_DATE,
+                       d.OPENING_CARRYING_AMT AS BEGINNING_EAD_AMOUNT,
+                       d.SCHEDULED_PRINCIPAL_AMT AS EXPECTED_PRINCIPAL_AMT,
+                       d.SCHEDULED_INTEREST_AMT AS EXPECTED_INTEREST_AMT,
+                       d.CLOSING_CARRYING_AMT AS ENDING_EAD_AMOUNT
+                  FROM PRV_TARGET_CONTRACT t
+                  JOIN PRV_STAGE_RESULT s
+                    ON s.TARGET_ID = t.TARGET_ID
+                  JOIN PRV_PD_RESULT p
+                    ON p.TARGET_ID = t.TARGET_ID
+                  JOIN PRV_LGD_RESULT l
+                    ON l.TARGET_ID = t.TARGET_ID
+                  JOIN LOCF_BATCH_EXECUTION lb
+                    ON lb.BASE_DATE = t.BASE_DATE
+                   AND lb.STATUS_CODE = 'COMPLETED'
+                   AND lb.BATCH_EXECUTION_ID = (
+                       SELECT MAX(lb2.BATCH_EXECUTION_ID)
+                         FROM LOCF_BATCH_EXECUTION lb2
+                        WHERE lb2.BASE_DATE = t.BASE_DATE
+                          AND lb2.STATUS_CODE = 'COMPLETED'
+                   )
+                  JOIN LOCF_AMORTIZATION_DTL d
+                    ON d.BATCH_EXECUTION_ID = lb.BATCH_EXECUTION_ID
+                   AND d.CONTRACT_ID = t.CONTRACT_ID
+                   AND d.PAYMENT_DATE > t.BASE_DATE
+                  LEFT JOIN LOCF_EIR_RESULT eir
+                    ON eir.BATCH_EXECUTION_ID = d.BATCH_EXECUTION_ID
+                   AND eir.CONTRACT_ID = d.CONTRACT_ID
+                 WHERE t.BATCH_EXECUTION_ID = #{batchExecutionId}
+                UNION ALL
+                SELECT t.BATCH_EXECUTION_ID,
+                       t.TARGET_ID,
+                       t.CONTRACT_ID,
+                       t.CONTRACT_NO,
+                       t.BASE_DATE,
+                       s.STAGE_CODE,
+                       p.ONE_YEAR_PD_RATE,
+                       p.LIFETIME_PD_RATE,
+                       l.LGD_RATE,
+                       0 AS MONTHLY_EIR,
+                       1 AS INSTALLMENT_NO,
+                       t.BASE_DATE AS CASHFLOW_DATE,
+                       t.CARRYING_AMOUNT AS BEGINNING_EAD_AMOUNT,
+                       0 AS EXPECTED_PRINCIPAL_AMT,
+                       0 AS EXPECTED_INTEREST_AMT,
+                       t.CARRYING_AMOUNT AS ENDING_EAD_AMOUNT
+                  FROM PRV_TARGET_CONTRACT t
+                  JOIN PRV_STAGE_RESULT s
+                    ON s.TARGET_ID = t.TARGET_ID
+                  JOIN PRV_PD_RESULT p
+                    ON p.TARGET_ID = t.TARGET_ID
+                  JOIN PRV_LGD_RESULT l
+                    ON l.TARGET_ID = t.TARGET_ID
+                 WHERE t.BATCH_EXECUTION_ID = #{batchExecutionId}
+                   AND NOT EXISTS (
+                       SELECT 1
+                         FROM LOCF_BATCH_EXECUTION lb
+                         JOIN LOCF_AMORTIZATION_DTL d
+                           ON d.BATCH_EXECUTION_ID = lb.BATCH_EXECUTION_ID
+                          AND d.CONTRACT_ID = t.CONTRACT_ID
+                          AND d.PAYMENT_DATE > t.BASE_DATE
+                        WHERE lb.BASE_DATE = t.BASE_DATE
+                          AND lb.STATUS_CODE = 'COMPLETED'
+                   )
+          ) source_rows
+         ORDER BY source_rows.TARGET_ID ASC, source_rows.CASHFLOW_DATE ASC, source_rows.INSTALLMENT_NO ASC
+    </select>
+
+    <insert id="insertEclCashflowDetail" parameterType="com.hi.locf.feature.provision.entity.ProvisionEclCashflowDetail">
+        <selectKey keyProperty="eclCashflowId" resultType="long" order="BEFORE">
+            SELECT SQ_PRV_ECL_CASHFLOW_DTL.NEXTVAL FROM DUAL
+        </selectKey>
+        INSERT INTO PRV_ECL_CASHFLOW_DTL (
+            ECL_CASHFLOW_ID, BATCH_EXECUTION_ID, TARGET_ID, CONTRACT_ID, CONTRACT_NO,
+            INSTALLMENT_NO, CASHFLOW_DATE, BEGINNING_EAD_AMOUNT, EXPECTED_PRINCIPAL_AMT,
+            EXPECTED_INTEREST_AMT, ENDING_EAD_AMOUNT, MARGINAL_PD_RATE, CUMULATIVE_PD_RATE,
+            LGD_RATE, DISCOUNT_RATE, DISCOUNT_FACTOR, PERIOD_ECL_AMOUNT, PV_ECL_AMOUNT
+        ) VALUES (
+            #{eclCashflowId}, #{batchExecutionId}, #{targetId}, #{contractId}, #{contractNo},
+            #{installmentNo}, #{cashflowDate}, #{beginningEadAmount}, #{expectedPrincipalAmt},
+            #{expectedInterestAmt}, #{endingEadAmount}, #{marginalPdRate}, #{cumulativePdRate},
+            #{lgdRate}, #{discountRate}, #{discountFactor}, #{periodEclAmount}, #{pvEclAmount}
+        )
+    </insert>
+
+    <select id="countEclCashflowResults" resultType="long">
+        SELECT COUNT(*)
+          FROM PRV_ECL_CASHFLOW_DTL
+         WHERE BATCH_EXECUTION_ID = #{batchExecutionId}
+    </select>
+</mapper>

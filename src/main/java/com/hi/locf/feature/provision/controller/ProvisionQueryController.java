@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.hi.locf.common.api.ApiResponse;
 import com.hi.locf.feature.provision.dto.ProvisionContractResultRow;
+import com.hi.locf.feature.provision.dto.ProvisionEclCashflowDetailResponse;
 import com.hi.locf.feature.provision.dto.ProvisionSegmentSummaryItemResponse;
 import com.hi.locf.feature.provision.dto.ProvisionSummaryItemResponse;
 import com.hi.locf.feature.provision.service.ProvisionQueryService;
@@ -43,6 +44,11 @@ public class ProvisionQueryController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate baseDate
     ) {
         return ApiResponse.ok(provisionQueryService.getSegmentSummary(baseDate));
+    }
+    
+    @GetMapping({"/contracts/{contractNo}/cashflows", "/contracts/{contractNo}/casflows"})
+    public ApiResponse<List<ProvisionEclCashflowDetailResponse>> getCashflows(@PathVariable String contractNo) {
+        return ApiResponse.ok(provisionQueryService.getCashflows(contractNo));
     }
 
     

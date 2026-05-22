@@ -153,28 +153,6 @@ public final class H2LocfProcedures {
         executeInsertWithBatchId(connection, sql, batchExecutionId);
     }
 
-    public static void buildProvisionEclCashflow(Connection connection, Long batchExecutionId) throws Exception {
-        String sql =
-                "INSERT INTO PRV_ECL_CASHFLOW_DTL (" +
-                "ECL_CASHFLOW_ID, BATCH_EXECUTION_ID, TARGET_ID, CONTRACT_ID, CONTRACT_NO, INSTALLMENT_NO, CASHFLOW_DATE, " +
-                "BEGINNING_EAD_AMOUNT, EXPECTED_PRINCIPAL_AMT, EXPECTED_INTEREST_AMT, ENDING_EAD_AMOUNT, " +
-                "MARGINAL_PD_RATE, CUMULATIVE_PD_RATE, LGD_RATE, DISCOUNT_RATE, DISCOUNT_FACTOR, PERIOD_ECL_AMOUNT, PV_ECL_AMOUNT) " +
-                "SELECT NEXT VALUE FOR SQ_PRV_ECL_CASHFLOW_DTL, t.BATCH_EXECUTION_ID, t.TARGET_ID, t.CONTRACT_ID, t.CONTRACT_NO, " +
-                "1, t.BASE_DATE, e.EAD_AMOUNT, 0, 0, e.EAD_AMOUNT, " +
-                "CASE WHEN s.STAGE_CODE = 'STAGE1' THEN p.ONE_YEAR_PD_RATE ELSE p.LIFETIME_PD_RATE END, " +
-                "CASE WHEN s.STAGE_CODE = 'STAGE1' THEN p.ONE_YEAR_PD_RATE ELSE p.LIFETIME_PD_RATE END, " +
-                "l.LGD_RATE, 0, 1, " +
-                "ROUND(e.EAD_AMOUNT * CASE WHEN s.STAGE_CODE = 'STAGE1' THEN p.ONE_YEAR_PD_RATE ELSE p.LIFETIME_PD_RATE END * l.LGD_RATE, 2), " +
-                "ROUND(e.EAD_AMOUNT * CASE WHEN s.STAGE_CODE = 'STAGE1' THEN p.ONE_YEAR_PD_RATE ELSE p.LIFETIME_PD_RATE END * l.LGD_RATE, 2) " +
-                "FROM PRV_TARGET_CONTRACT t " +
-                "JOIN PRV_STAGE_RESULT s ON s.TARGET_ID = t.TARGET_ID " +
-                "JOIN PRV_EAD_RESULT e ON e.TARGET_ID = t.TARGET_ID " +
-                "JOIN PRV_PD_RESULT p ON p.TARGET_ID = t.TARGET_ID " +
-                "JOIN PRV_LGD_RESULT l ON l.TARGET_ID = t.TARGET_ID " +
-                "WHERE t.BATCH_EXECUTION_ID = ?";
-        executeInsertWithBatchId(connection, sql, batchExecutionId);
-    }
-
     public static void calculateProvisionEcl(Connection connection, Long batchExecutionId) throws Exception {
         String sql =
                 "INSERT INTO PRV_ECL_RESULT_DTL (" +

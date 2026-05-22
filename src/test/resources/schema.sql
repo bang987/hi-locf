@@ -418,6 +418,5 @@ CREATE ALIAS PRC_PRV_CALCULATE_STAGE FOR "com.hi.locf.support.H2LocfProcedures.c
 CREATE ALIAS PRC_PRV_CALCULATE_EAD FOR "com.hi.locf.support.H2LocfProcedures.calculateProvisionEad";
 CREATE ALIAS PRC_PRV_CALCULATE_PD FOR "com.hi.locf.support.H2LocfProcedures.calculateProvisionPd";
 CREATE ALIAS PRC_PRV_CALCULATE_LGD FOR "com.hi.locf.support.H2LocfProcedures.calculateProvisionLgd";
-CREATE ALIAS PRC_PRV_BUILD_ECL_CASHFLOW FOR "com.hi.locf.support.H2LocfProcedures.buildProvisionEclCashflow";
 CREATE ALIAS PRC_PRV_CALCULATE_ECL FOR "com.hi.locf.support.H2LocfProcedures.calculateProvisionEcl";
 CREATE ALIAS PRC_PRV_INSERT_RESULT_SUMMARY FOR "com.hi.locf.support.H2LocfProcedures.insertProvisionResultSummary";

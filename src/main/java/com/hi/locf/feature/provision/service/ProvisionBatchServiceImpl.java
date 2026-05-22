@@ -9,6 +9,8 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.hi.locf.common.code.ErrorCode;
+import com.hi.locf.common.exception.BusinessException;
 import com.hi.locf.feature.provision.dto.ProvisionBatchHistoryItemResponse;
 import com.hi.locf.feature.provision.dto.ProvisionBatchRunRequest;
 import com.hi.locf.feature.provision.dto.ProvisionBatchRunResponse;
@@ -25,13 +27,16 @@ public class ProvisionBatchServiceImpl implements ProvisionBatchService {
 
     private final ProvisionBatchControlMapper provisionBatchControlMapper;
     private final ProvisionCalculationMapper provisionCalculationMapper;
+    private final ProvisionEclCashflowService provisionEclCashflowService;
 
     public ProvisionBatchServiceImpl(
             ProvisionBatchControlMapper provisionBatchControlMapper,
-            ProvisionCalculationMapper provisionCalculationMapper
+            ProvisionCalculationMapper provisionCalculationMapper,
+            ProvisionEclCashflowService provisionEclCashflowService
     ) {
         this.provisionBatchControlMapper = provisionBatchControlMapper;
         this.provisionCalculationMapper = provisionCalculationMapper;
+        this.provisionEclCashflowService = provisionEclCashflowService;
     }
 
     @Override
@@ -53,6 +58,9 @@ public class ProvisionBatchServiceImpl implements ProvisionBatchService {
                 provisionCalculationMapper.insertTargetContracts(execution.getBatchExecutionId(), request.getBaseDate());
                 return provisionCalculationMapper.countTargetContracts(execution.getBatchExecutionId());
             });
+            if (targetCount == 0L) {
+                throw new BusinessException(ErrorCode.PROVISION_TARGET_NOT_FOUND);
+            }
 
             runStep("STAGE", execution.getBatchExecutionId(), () -> {
                 provisionCalculationMapper.calculateStage(execution.getBatchExecutionId());
@@ -75,8 +83,7 @@ public class ProvisionBatchServiceImpl implements ProvisionBatchService {
             });
 
             runStep("ECL_CASHFLOW", execution.getBatchExecutionId(), () -> {
-                provisionCalculationMapper.buildEclCashflow(execution.getBatchExecutionId());
-                return provisionCalculationMapper.countEclCashflowResults(execution.getBatchExecutionId());
+                return provisionEclCashflowService.buildEclCashflow(execution.getBatchExecutionId());
             });
 
             long processedCount = runStep("ECL", execution.getBatchExecutionId(), () -> {

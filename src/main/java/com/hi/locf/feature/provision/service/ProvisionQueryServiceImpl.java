@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.hi.locf.common.code.ErrorCode;
 import com.hi.locf.common.exception.BusinessException;
 import com.hi.locf.feature.provision.dto.ProvisionContractResultRow;
+import com.hi.locf.feature.provision.dto.ProvisionEclCashflowDetailResponse;
 import com.hi.locf.feature.provision.dto.ProvisionSegmentSummaryItemResponse;
 import com.hi.locf.feature.provision.dto.ProvisionSummaryItemResponse;
 import com.hi.locf.feature.provision.entity.ProvisionContractResultDetail;
@@ -75,5 +76,18 @@ public class ProvisionQueryServiceImpl implements ProvisionQueryService {
     @Transactional(readOnly = true)
     public List<ProvisionSegmentSummaryItemResponse> getSegmentSummary(LocalDate baseDate) {
         return provisionQueryMapper.findSegmentSummaryByBaseDate(baseDate);
+    }
+    
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProvisionEclCashflowDetailResponse> getCashflows(String contractNo) {
+        List<ProvisionEclCashflowDetailResponse> responses =
+                provisionQueryMapper.findEclCashflowDetailByContractNo(contractNo);
+
+        if (responses.isEmpty()) {
+            throw new BusinessException(ErrorCode.PROVISION_RESULT_NOT_FOUND);
+        }
+
+        return responses;
     }
 }

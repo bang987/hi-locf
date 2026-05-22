@@ -73,6 +73,16 @@
             color: var(--ink);
             border: 1px solid var(--line);
         }
+        button.link-button {
+            min-width: 0;
+            height: auto;
+            padding: 0;
+            border: none;
+            background: transparent;
+            color: var(--accent);
+            font-weight: 700;
+            text-decoration: underline;
+        }
         table {
             width: 100%;
             border-collapse: collapse;
@@ -262,6 +272,16 @@
         </section>
 
         <section class="card wide">
+            <h2>회차별 예상손실 상세</h2>
+            <div class="row">
+                <input id="cashflowContractNo" type="text" placeholder="계약별 충당금 결과에서 계약번호 선택" readonly>
+                <button class="secondary" onclick="loadEclCashflow()">ECL Cashflow 조회</button>
+            </div>
+            <pre id="cashflowResult">계약번호를 선택하면 ECL Cashflow가 표시됩니다.</pre>
+            <div id="eclCashflowTable"></div>
+        </section>
+
+        <section class="card wide">
             <h2>기준일자별 충당금 요약</h2>
             <div id="summaryTable"></div>
         </section>
@@ -300,6 +320,42 @@
             }).join("");
             return `<tr>${cells}</tr>`;
         }).join("");
+
+        target.innerHTML = `<table><thead><tr>${header}</tr></thead><tbody>${body}</tbody></table>`;
+    }
+
+    function renderContractResultTable(rows) {
+        const target = document.getElementById("contractResultTable");
+        if (!rows || rows.length === 0) {
+            target.innerHTML = "<div class='muted'>조회 결과가 없습니다.</div>";
+            return;
+        }
+
+        const header = [
+            "계약번호", "고객명", "상품코드", "Stage", "Stage 사유",
+            "장부가", "EAD", "1년 PD", "Lifetime PD", "LGD", "회수율", "ECL"
+        ].map(label => `<th>${label}</th>`).join("");
+
+        const body = rows.map(row => `
+            <tr>
+                <td>
+                    <button class="link-button" onclick="selectContractCashflow('${textCell(row.contractNo)}')">
+                        ${textCell(row.contractNo)}
+                    </button>
+                </td>
+                <td>${textCell(row.customerName)}</td>
+                <td>${textCell(row.productCode)}</td>
+                <td>${textCell(row.stageCode)}</td>
+                <td>${textCell(row.stageReason)}</td>
+                <td>${money(row.carryingAmount)}</td>
+                <td>${money(row.eadAmount)}</td>
+                <td>${money(row.oneYearPdRate)}</td>
+                <td>${money(row.lifetimePdRate)}</td>
+                <td>${money(row.lgdRate)}</td>
+                <td>${money(row.recoveryRate)}</td>
+                <td>${money(row.eclAmount)}</td>
+            </tr>
+        `).join("");
 
         target.innerHTML = `<table><thead><tr>${header}</tr></thead><tbody>${body}</tbody></table>`;
     }
@@ -408,23 +464,50 @@
             const contractNo = document.getElementById("contractNo").value.trim();
             const data = await fetchJson(`${apiBase}/contracts/${contractNo}`);
             document.getElementById("contractHeader").textContent = JSON.stringify(data, null, 2);
-            renderTable("contractResultTable", [
-                { key: "contractNo", label: "계약번호" },
-                { key: "customerName", label: "고객명" },
-                { key: "productCode", label: "상품코드" },
-                { key: "stageCode", label: "Stage" },
-                { key: "stageReason", label: "Stage 사유" },
-                { key: "carryingAmount", label: "장부가", format: money },
-                { key: "eadAmount", label: "EAD", format: money },
-                { key: "oneYearPdRate", label: "1년 PD", format: money },
-                { key: "lifetimePdRate", label: "Lifetime PD", format: money },
-                { key: "lgdRate", label: "LGD", format: money },
-                { key: "recoveryRate", label: "회수율", format: money },
-                { key: "eclAmount", label: "ECL", format: money }
-            ], data);
+            renderContractResultTable(data);
         } catch (error) {
             document.getElementById("contractHeader").textContent = error.message;
             document.getElementById("contractResultTable").innerHTML = "";
+            document.getElementById("cashflowContractNo").value = "";
+            document.getElementById("cashflowResult").textContent = "계약별 충당금 결과 조회 후 계약번호를 선택해 주세요.";
+            document.getElementById("eclCashflowTable").innerHTML = "";
+        }
+    }
+
+    async function selectContractCashflow(contractNo) {
+        document.getElementById("cashflowContractNo").value = contractNo;
+        await loadEclCashflow();
+    }
+
+    async function loadEclCashflow() {
+        try {
+            const contractNo = document.getElementById("cashflowContractNo").value.trim();
+            if (!contractNo) {
+                throw new Error("계약별 충당금 결과에서 계약번호를 선택해 주세요.");
+            }
+
+            const data = await fetchJson(`${apiBase}/contracts/${encodeURIComponent(contractNo)}/cashflows`);
+            document.getElementById("cashflowResult").textContent =
+                `${contractNo} 계약의 회차별 ECL Cashflow ${data.length}건을 조회했습니다.`;
+
+            renderTable("eclCashflowTable", [
+                { key: "installmentNo", label: "회차" },
+                { key: "cashflowDate", label: "현금흐름일자" },
+                { key: "beginningEadAmount", label: "기초 EAD", format: money },
+                { key: "expectedPrincipalAmt", label: "예상원금", format: money },
+                { key: "expectedInterestAmt", label: "예상이자", format: money },
+                { key: "endingEadAmount", label: "기말 EAD", format: money },
+                { key: "marginalPdRate", label: "회차 PD", format: money },
+                { key: "cumulativePdRate", label: "누적 PD", format: money },
+                { key: "lgdRate", label: "LGD", format: money },
+                { key: "discountRate", label: "할인율", format: money },
+                { key: "discountFactor", label: "할인계수", format: money },
+                { key: "periodEclAmount", label: "회차 ECL", format: money },
+                { key: "pvEclAmount", label: "현재가치 ECL", format: money }
+            ], data);
+        } catch (error) {
+            document.getElementById("cashflowResult").textContent = error.message;
+            document.getElementById("eclCashflowTable").innerHTML = "";
         }
     }
 

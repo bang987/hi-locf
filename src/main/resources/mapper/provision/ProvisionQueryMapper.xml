@@ -46,6 +46,26 @@
         <result property="totalEclAmount" column="TOTAL_ECL_AMOUNT"/>
     </resultMap>
     
+    <resultMap id="provisionEclCahsflowDetailMap" type="com.hi.locf.feature.provision.dto.ProvisionEclCashflowDetailResponse" >
+    	<id property="eclCashflowId" column="ECL_CASHFLOW_ID"/>
+    	<result property="batchExecutionId" column="BATCH_EXECUTION_ID"/>
+    	<result property="targetId" column="TARGET_ID"/>
+    	<result property="contractId" column="CONTRACT_ID"/>
+    	<result property="contractNo" column="CONTRACT_NO"/>
+    	<result property="installmentNo" column="INSTALLMENT_NO"/>
+    	<result property="cashflowDate" column="CASHFLOW_DATE"/>
+    	<result property="beginningEadAmount" column="BEGINNING_EAD_AMOUNT"/>
+    	<result property="expectedPrincipalAmt" column="EXPECTED_PRINCIPAL_AMT"/>
+    	<result property="expectedInterestAmt" column="EXPECTED_INTEREST_AMT"/>
+    	<result property="endingEadAmount" column="ENDING_EAD_AMOUNT"/>
+    	<result property="marginalPdRate" column="MARGINAL_PD_RATE"/>
+    	<result property="cumulativePdRate" column="CUMULATIVE_PD_RATE"/>
+    	<result property="lgdRate" column="LGD_RATE"/>
+    	<result property="discountRate" column="DISCOUNT_RATE"/>
+    	<result property="discountFactor" column="DISCOUNT_FACTOR"/>
+    	<result property="periodEclAmount" column="PERIOD_ECL_AMOUNT"/>
+    	<result property="pvEclAmount" column="PV_ECL_AMOUNT"/>
+</resultMap>
     
 
     <select id="findLatestContractResultsByContractNo" resultMap="provisionContractResultDetailResultMap">
@@ -93,5 +113,17 @@
     		cm.SEGMENT_CODE,
     		d.STAGE_CODE
     	
+    </select>
+    
+    <select id="findEclCashflowDetailByContractNo" resultMap="provisionEclCahsflowDetailMap">
+        SELECT *
+  			FROM PRV_ECL_CASHFLOW_DTL
+ 		WHERE BATCH_EXECUTION_ID = (
+       					SELECT MAX(BATCH_EXECUTION_ID)
+         				FROM PRV_ECL_CASHFLOW_DTL
+        				WHERE CONTRACT_NO = #{contractNo}
+ 			)
+   		AND CONTRACT_NO = #{contractNo}
+ 		ORDER BY INSTALLMENT_NO
     </select>
 </mapper>

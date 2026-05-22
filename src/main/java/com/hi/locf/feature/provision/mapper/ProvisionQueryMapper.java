@@ -6,6 +6,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import com.hi.locf.feature.provision.dto.ProvisionEclCashflowDetailResponse;
 import com.hi.locf.feature.provision.dto.ProvisionSegmentSummaryItemResponse;
 import com.hi.locf.feature.provision.entity.ProvisionContractResultDetail;
 import com.hi.locf.feature.provision.entity.ProvisionResultSummary;
@@ -18,6 +19,8 @@ public interface ProvisionQueryMapper {
     List<ProvisionResultSummary> findSummaryByBaseDate(@Param("baseDate") LocalDate baseDate);
     
     List<ProvisionSegmentSummaryItemResponse> findSegmentSummaryByBaseDate(@Param("baseDate") LocalDate baseDate);
+    
+    List<ProvisionEclCashflowDetailResponse>  findEclCashflowDetailByContractNo(@Param("contractNo") String contractNo);
+    
 
- 
 }
